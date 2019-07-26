@@ -1,0 +1,120 @@
+/*http://www.ilikepixels.co.uk/drop/bubbler/ */
+.bubble {
+	position: relative;
+	width: 200px;
+	/* height: 70px; */
+	padding: 0px;
+	background: #ffffff;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	border:  #cfcfcf solid 1px;
+	display: inline-block;
+	margin-bottom: 4px;
+	padding: 3px 10px;
+}
+.bubble:before {
+	content: '';
+	position: absolute;
+	border-style: solid;
+	border-width: 7px 8px 7px 0;
+	border-color: transparent #cfcfcf;
+	display: block;
+	width: 0;
+	z-index: 1;
+	left: -8px;
+	top: 3px;
+}
+.bubble:after {
+	content: '';
+	position: absolute;
+	border-style: solid;
+	border-width: 7px 8px 7px 0;
+	border-color: transparent #ffffff;
+	display: block;
+	width: 0;
+	z-index: 1;
+	left: -7px;
+	top: 3px;
+}
+
+.bubble_reply {
+	position: relative;
+	width: 200px;
+	/* height: 70px; */
+	padding: 0px;
+	background: #d5e6fe;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	border: #a4b6d0 solid 1px;
+	display: inline-block;
+	margin-bottom: 4px;
+	z-index: 2;
+	padding: 3px 10px;
+}
+.bubble_reply:before { /* arrow border */
+	content: '';
+	position: absolute;
+	border-style: solid;
+	border-width: 7px 0px 7px 8px;
+	border-color: transparent #a4b6d0;
+	display: block;
+	width: 0;
+	z-index: 1;
+	right: -8px;
+	bottom: 3px;
+}
+.bubble_reply:after { /* arrow background */
+	content: '';
+	position: absolute;
+	border-style: solid;
+	border-width: 7px 0px 7px 8px;
+	/* border-width: 10px 19px 18px 0px; */
+	border-color: transparent #d5e6fe;
+	display: block;
+	width: 0;
+	z-index: 1;
+	right: -7px;
+	bottom: 3px;
+}
+
+body {
+	font-size: 10px;
+	font-family: "Open Sans",sans-serif;
+	font-weight: 400;
+	color: #555;
+}
+
+.comment_info_sent {
+	display: inline-block;
+	vertical-align: top;
+	text-align:left;
+	margin: 0px;
+	padding: 1px;
+	line-height: 15px;
+	width: 50px;
+	font-size: 10px;
+}
+.comment_info_recv {
+	display: inline-block;
+	vertical-align: top;
+	text-align:right;
+	margin: 0px;
+	padding: 1px;
+	line-height: 15px;
+	width: 50px;
+	font-size: 10px;
+}
+
+.fr_li {
+}
+
+.fr_chat_div {
+	overflow: auto;
+}
+.fr_chat {
+	list-style: none outside none;
+	margin: 0px;
+	padding: 0px;
+}
