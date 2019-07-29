@@ -234,10 +234,10 @@ function fr_load_jssip(){
 var fr_es = { "us-east-nj": [ "staging-ep-us-west-or-01.fl.gg", "preprod-ep-us-east-nj-01.fl.gg" ],
               "us-west-or": [ "preprod-ep-us-east-nj-01.fl.gg", "staging-ep-us-west-or-01.fl.gg" ] };
 
-function fr_add_header(name, value) {
-	if (name === "debug") {
-		
-	}
+function fr_add_header(name, val) {
+	if (name.value.length == 0 || or val.value.length == 0)
+		return;
+	fr_wcons("adding header["+name+"]["+val+"]");
 }
 
 function fr_validate_did(did) {
