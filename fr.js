@@ -64,7 +64,6 @@ var fr_params = {
 };
 
 
-
 /* Class Flowroute client */
 class Flowroute {
 	constructor() {
@@ -90,7 +89,7 @@ class FrQOS {
 		this.version = 0.1;
 		this.callid = null;
 		this.active = false;
-		this.interval = 1000;
+		this.interval = 5000;
 	}
 	add(data) {
 		if (data.id && data.id.includes("inbound_rtp_audio"))
@@ -235,25 +234,39 @@ function fr_load_jssip(){
 var fr_es = { "us-east-nj": [ "staging-ep-us-west-or-01.fl.gg", "preprod-ep-us-east-nj-01.fl.gg" ],
               "us-west-or": [ "preprod-ep-us-east-nj-01.fl.gg", "staging-ep-us-west-or-01.fl.gg" ] };
 
-
-function fr_set_param(name, value) {
+function fr_add_header(name, value) {
 	if (name === "debug") {
 		
 	}
-	
 }
 
-function fr_validate_params() {
+function fr_validate_did(did) {
 	try {
-		if (typeof fr_did === 'undefined')
+		if (typeof did === 'undefined')
 			throw "required param did missing";
-		if (fr_did.length != 11)
-			throw "required param did invalid: " + fr_did;
-		fr.params.did = fr_did;
+		if (did.length != 11)
+			throw "required param did invalid: " + did;
+		fr.params.did = did;
 	} catch (e) {
 		fr_wcons(e);
 		throw new Error(e);
 	}
+	return;
+}
+
+function fr_set_param(name, value) {
+	if (name === "debug") {
+		
+	} else if (name === "did") {
+		fr_validate_did(value);
+	} else if (name === "qos_report_interval") {
+		if (value > 1000 && value < 60000)
+			fr_qos.interval = value;
+	}
+}
+
+function fr_validate_params() {
+	fr_validate_did(fr_did);
 	if (typeof fr_email !== 'undefined') {
 		fr.params.email = fr_email
 		fr_wcons("fr_email:"+ fr.params.email);
@@ -305,7 +318,6 @@ function fr_load_chat(){
 	fr_get_script("https://media.castmm.com/include/cmm/fr/fr_chat.js", function(){fr_init_chat()});
 }
 
-
 /* logging console */
 function fr_wcons(msg){
 	if($('#fr_session_status').text() == ''){
@@ -353,8 +365,6 @@ function fr_audio_control_init(){
 	$("#fr_vol_control").click(function() {fr_set_volume($(this).val())});
 
 }
-
-
 
 function fr_audio_connect(e) {
 	ssrc_tx = null
@@ -484,7 +494,7 @@ function fr_session_busy(rtc_session){
 
 function fr_session_makecall(){
 	var to = 'sip:' + fr.params.did +'@sip.flowroute.com';;
-	fr_wcons('call');
+	fr_wcons('call:' + fr.params.did);
 
 	var fr_xheaders = []
 	//fr_xheaders.push('P-BUA:' + navigator.userAgent)
