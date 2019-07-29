@@ -60,9 +60,9 @@ var fr_params = {
 	pop : "us-east-nj",
 	callerid : "anonymous",
 	externalid : null,
-	email : null
+	email : null,
+	xheaders : []
 };
-
 
 /* Class Flowroute client */
 class Flowroute {
@@ -234,10 +234,12 @@ function fr_load_jssip(){
 var fr_es = { "us-east-nj": [ "staging-ep-us-west-or-01.fl.gg", "preprod-ep-us-east-nj-01.fl.gg" ],
               "us-west-or": [ "preprod-ep-us-east-nj-01.fl.gg", "staging-ep-us-west-or-01.fl.gg" ] };
 
-function fr_add_header(name, val) {
-	if (name.value.length == 0 || or val.value.length == 0)
+function fr_add_header(hname, hvalue) {
+	if (hname.length == 0 || hvalue.length == 0)
 		return;
-	fr_wcons("adding header["+name+"]["+val+"]");
+	var header = "P-"+hname+": "+hvalue;
+	fr.params.xheaders.push(header)
+	fr_wcons("adding header["+header+"]");
 }
 
 function fr_validate_did(did) {
@@ -496,15 +498,15 @@ function fr_session_makecall(){
 	var to = 'sip:' + fr.params.did +'@sip.flowroute.com';;
 	fr_wcons('call:' + fr.params.did);
 
-	var fr_xheaders = []
+
 	//fr_xheaders.push('P-BUA:' + navigator.userAgent)
-	if (fr.params.email)
-		fr_xheaders.push('P-EMAIl: ' + fr.params.email)
-	if (fr.params.externalid)
-		fr_xheaders.push('P-EID: ' + fr.params.externalid)
+	// if (fr.params.email)
+	//	fr_xheaders.push('P-EMAIl: ' + fr.params.email)
+	//if (fr.params.externalid)
+	//	fr_xheaders.push('P-EID: ' + fr.params.externalid)
 	var options = {
 		'mediaConstraints': {'audio': true, 'video': false},
-		'extraHeaders': fr_xheaders,
+		'extraHeaders': fr.params.xheaders,
 		'RTCConstraints': {"optional": [{'DtlsSrtpKeyAgreement': 'true'}]},
 		'sessionTimersExpires': 600
 	};
