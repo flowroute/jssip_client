@@ -29,10 +29,6 @@ function ready(callback){
 	});
 }
 
-ready(function(){
-	fr_load_scripts();
-});
-
 function fr_init_language() {
 	var language = navigator.language || navigator.userLanguage;
 	var lang = language.substring(0,2);
@@ -59,12 +55,11 @@ var fr_params = {
 	did : null,
 	pop : "us-east-nj",
 	callerid : "anonymous",
-	externalid : null,
-	email : null,
-	xheaders : []
+	password : "nopassword",
+	xheaders : [],
+	debug : false
 };
 
-/* Class Flowroute client */
 class Flowroute {
 	constructor() {
 		this.session_manager = null;
@@ -115,7 +110,7 @@ class FrQOS {
 				rpt['qos_data']['rx_media'] = this.media_rx;
 			var to = "qos@sip.flowroute.com";
 			var options = { 'extraHeaders': [ 'P-QoS-Call-ID:'+this.callid ] };
-			fr.session_manager.sendMessage(to, JSON.stringify(rpt, null, 2), options);
+			fr.jssip_ua.sendMessage(to, JSON.stringify(rpt, null, 2), options);
 			this.rtp_rx = null;
 			this.rtp_tx = null;
 			this.media_rx = null;
@@ -180,15 +175,7 @@ function _getstats_real(pc, callback) {
 var fr = new Flowroute();
 var fr_qos = new FrQOS();
 
-function fr_init(){
-	var d = new Date();
-	var hour = (d.getHours()<10?'0':'') + d.getHours();
-	var min = (d.getMinutes()<10?'0':'') + d.getMinutes();
-	var sec = (d.getSeconds()<10?'0':'') + d.getSeconds();
-	var ms = d.getMilliseconds();
-	var tuid = "-"+hour+min+sec+"."+ms;
-	var password = 'no_password';
-	JsSIP.debug.enable('JsSIP:*');
+function fr_jssip_start(){
 	fr_wcons(fr.params.pop);
 	fr_wcons(fr_es[fr.params.pop]);
 	var socket1 = new JsSIP.WebSocketInterface('wss://'+ fr_es[fr.params.pop][0] +':4443');
@@ -197,12 +184,28 @@ function fr_init(){
 	var configuration = {
 		sockets  : sockets,
 		uri: 'sip:'+fr.params.callerid+'@wss.flowroute.com',
-		password: password,
+		password: fr.params.password,
 		trace_sip: true
 	};
+	fr.jssip_ua = new JsSIP.UA(configuration);
+	fr.jssip_ua.start();
+}
 
-	fr.session_manager = new JsSIP.UA(configuration); // JsSIP initialization
-	fr.session_manager.start(); // JsSIP start
+function fr_jssip_restart(){
+	fr.jssip_ua.stop();
+	fr_jssip_start();
+}
+
+function fr_init(){
+	var d = new Date();
+	var hour = (d.getHours()<10?'0':'') + d.getHours();
+	var min = (d.getMinutes()<10?'0':'') + d.getMinutes();
+	var sec = (d.getSeconds()<10?'0':'') + d.getSeconds();
+	var ms = d.getMilliseconds();
+	var tuid = "-"+hour+min+sec+"."+ms;
+	if (fr.params.debug)
+		JsSIP.debug.enable('JsSIP:*');
+	fr_jssip_start();
 }
 
 function fr_set_cookie(cname, cvalue, exdays) {
@@ -223,7 +226,8 @@ function fr_get_cookie(cname) {
 	return "";
 }
 
-function fr_load_scripts(){
+function fr_load(params){
+	fr_validate_params(params);
 	fr_load_jssip();
 }
 
@@ -257,67 +261,57 @@ function fr_validate_did(did) {
 }
 
 function fr_set_param(name, value) {
-	if (name === "debug") {
-		
+	if (name === "debug" &&  value) {
+		fr.params.debug = true;
 	} else if (name === "did") {
 		fr_validate_did(value);
+	} else if (name === "callerid") {
+		fr.params.callerid = value;
 	} else if (name === "qos_report_interval") {
 		if (value > 1000 && value < 60000)
 			fr_qos.interval = value;
 	}
+	fr_wcons("set_param["+name+"="+header+"]");
 }
 
-function fr_validate_params() {
-	fr_validate_did(fr_did);
-	if (typeof fr_email !== 'undefined') {
-		fr.params.email = fr_email
-		fr_wcons("fr_email:"+ fr.params.email);
+function fr_validate_params(params) {
+	fr_validate_did(params['did']);
+	if (typeof params['pop'] !== 'undefined' && typeof fr_es[params['pop']] !== 'undefined') {
+		fr.params.pop = params['pop'];
 	}
-	if (typeof fr_pop !== 'undefined' && typeof fr_es[fr_pop] !== 'undefined') {
-		fr.params.pop = fr_pop;
-		fr_wcons("fr_pop:"+fr_pop);
+	if (typeof params['callerid'] !== 'undefined') {
+		fr.params.callerid = params['callerid'];
 	}
-	if (typeof fr_externalid !== 'undefined') {
-		fr.params.externalid = fr_externalid;
-		fr_wcons("fr_externalid:"+fr_externalid);
+	if (typeof params['debug'] !== 'undefined') {
+		if (params['debug'] == true)
+			fr.params.debug = true;
 	}
-	if (typeof fr_callerid !== 'undefined') {
-		fr.params.callerid = fr_callerid;
-		fr_wcons("fr_callerid:"+fr_callerid);
-	}
-	if (typeof fr_chat_enabled !== 'undefined')
-		fr_wcons("fr_chat_enabled:"+fr_chat_enabled);
 }
 
 function fr_init_modules() {
 	fr_init_language();
 	fr_set_font();
-	if (typeof $fr_callerid !== 'undefined') {
-		fr_wcons("load_chat ...");
-		fr_load_chat();
-	}
 	fr_wcons("audio_init ...");
 	fr_audio_init();
 }
 
-function load_init(){
+function fr_load_init(){
 	fr_wcons("jquery:" + jQuery.fn.jquery);
 	fr_wcons("JSSIP:" + JsSIP.version);
-	fr_validate_params();
+	fr_wcons("params.debug:"+fr.params.debug);
+	fr_wcons("params.pop:"+fr.params.pop);
+	fr_wcons("params.callerid:"+fr.params.callerid);
+	fr_wcons("params.did:"+fr.params.did);
 	fr_init_modules();
 	fr_init();
-	fr_wcons("SIP session manager init ...");
-	fr_session_manager_init(fr.session_manager);
+	fr_wcons("JSSIP UA init ...");
+	fr_jssip_ua_init(fr.jssip_ua);
 }
 
 function fr_load_jquery(){
 	if (typeof jQuery === 'undefined' || jQuery === null ){
-		fr_get_script("https://media.castmm.com/include/cmm/fr/lib/jquery-3.4.1.min.js", function(){load_init();});
+		fr_get_script("https://media.castmm.com/include/cmm/fr/lib/jquery-3.4.1.min.js", function(){fr_load_init();});
 	}
-}
-
-function fr_load_chat(){
-	fr_get_script("https://media.castmm.com/include/cmm/fr/fr_chat.js", function(){fr_init_chat()});
 }
 
 /* logging console */
@@ -393,9 +387,9 @@ function fr_set_volume(val){
 	fr_wcons('After: ' + fr.audio_player.volume);
 }
 
-function fr_session_manager_init(){
+function fr_jssip_ua_init(){
 	fr_audio_control_init();
-	fr.session_manager.on('registered', function(e){
+	fr.jssip_ua.on('registered', function(e){
 		fr_wcons("registered");
 		if(fr.registration == 1)
 			return;
@@ -404,25 +398,25 @@ function fr_session_manager_init(){
 		$("#fr_bt_call").click(function() {fr_session_makecall()});
 		fr_wcons('registered');
 
-	fr.session_manager.on('unregistered', function(e){
+	fr.jssip_ua.on('unregistered', function(e){
 		fr_wcons('unregister');
 	});
-	fr.session_manager.on('registrationFailed', function(e){
+	fr.jssip_ua.on('registrationFailed', function(e){
 		fr_wcons('registration failed');
 	});
-	fr.session_manager.on('connected', function(e){
+	fr.jssip_ua.on('connected', function(e){
 		fr_wcons('connected');
 	});
-	fr.session_manager.on('disconnected', function(e){
+	fr.jssip_ua.on('disconnected', function(e){
 		fr_wcons('disconnected');
 	});
-	fr.session_manager.on('newMessage', function(e){
+	fr.jssip_ua.on('newMessage', function(e){
 		fr_wcons('new message');
 		if(e.data){
 			if(e.data.originator == 'remote'){rcv_msg(e)};
 		}
 	});
-	fr.session_manager.on('newRTCSession', (data) => {
+	fr.jssip_ua.on('newRTCSession', (data) => {
 		fr_wcons('new RTC session');
 		var display_name;
 		var request = data.request;
@@ -498,20 +492,13 @@ function fr_session_makecall(){
 	var to = 'sip:' + fr.params.did +'@sip.flowroute.com';;
 	fr_wcons('call:' + fr.params.did);
 
-
-	//fr_xheaders.push('P-BUA:' + navigator.userAgent)
-	// if (fr.params.email)
-	//	fr_xheaders.push('P-EMAIl: ' + fr.params.email)
-	//if (fr.params.externalid)
-	//	fr_xheaders.push('P-EID: ' + fr.params.externalid)
 	var options = {
 		'mediaConstraints': {'audio': true, 'video': false},
 		'extraHeaders': fr.params.xheaders,
 		'RTCConstraints': {"optional": [{'DtlsSrtpKeyAgreement': 'true'}]},
 		'sessionTimersExpires': 600
 	};
-
-	fr.session_manager.call(to, options);
+	fr.jssip_ua.call(to, options);
 };
 
 function fr_session_trying(rtc_session) {
@@ -537,7 +524,7 @@ function fr_session_answer(rtc_session) {
 	fr_stop_ring();
 	var options = {
 		'mediaConstraints': {'audio': true, 'video': false},
-		'extraHeaders': [ 'P-BUA:' + navigator.userAgent, 'P-REF:' + document.referrer, 'P-EMAIL:' + fr.email ],
+		'extraHeaders': [ 'P-BUA:' + navigator.userAgent, 'P-REF:' + document.referrer],
 		'RTCConstraints': {"optional": [{'DtlsSrtpKeyAgreement': 'true'}]}
 	};
 	rtc_session.answer(options);
@@ -546,7 +533,7 @@ function fr_session_answer(rtc_session) {
 	$("#fr_bt_call").click(function(e) {fr_session_disconnect(rtc_session)});
 }
 
-function fr_session_incoming(rtc_session,request){
+function fr_session_incoming(rtc_session,request) {
 	fr_play_ring();
 
 	if ($("#fr_target_user").length) {
