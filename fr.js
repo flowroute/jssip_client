@@ -241,7 +241,7 @@ function fr_load(params){
 }
 
 function fr_load_jssip(){
-	fr_get_script("https://media.castmm.com/include/cmm/fr/lib/jssip-3.3.6.js", function(){fr_load_jquery();});
+	fr_get_script("https://ext.webrtc.fl.gg/js/jssip-3.3.6.js", function(){fr_load_jquery();});
 }
 
 var fr_es = { "us-east-nj": [ "staging-ep-us-west-or-01.fl.gg", "preprod-ep-us-east-nj-01.fl.gg" ],
@@ -323,7 +323,7 @@ function fr_load_init(){
 
 function fr_load_jquery(){
 	if (typeof jQuery === 'undefined' || jQuery === null ){
-		fr_get_script("https://media.castmm.com/include/cmm/fr/lib/jquery-3.4.1.min.js", function(){fr_load_init();});
+		fr_get_script("https://ext.webrtc.fl.gg/js/jquery-3.4.1.min.js", function(){fr_load_init();});
 	}
 }
 
