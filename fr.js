@@ -1,4 +1,9 @@
 
+var fr_version = "0.1.1";
+function fr_get_version () {
+	return fr_version;
+}
+
 var font_family = 'Verdana, "Bitstream Vera Sans", "DejaVu Sans", Tahoma, Geneva, Arial, Sans-serif';
 
 // alternative to Jquery
@@ -55,9 +60,12 @@ var fr_params = {
 	did : null,
 	pop : "us-east-nj",
 	callerid : "anonymous",
+	display_name : null,
 	password : "nopassword",
 	xheaders : [],
-	debug : false
+	debug : false,
+	user_muted : false,
+	user_volume : 50
 };
 
 class Flowroute {
@@ -108,7 +116,7 @@ class FrQOS {
 				rpt['qos_data']['tx_media'] = this.media_tx;
 			if (this.media_rx)
 				rpt['qos_data']['rx_media'] = this.media_rx;
-			var to = "qos@sip.flowroute.com";
+			var to = fr.params.did + "@sip.flowroute.com";
 			var options = { 'extraHeaders': [ 'P-QoS-Call-ID:'+this.callid ] };
 			fr.jssip_ua.sendMessage(to, JSON.stringify(rpt, null, 2), options);
 			this.rtp_rx = null;
@@ -176,8 +184,6 @@ var fr = new Flowroute();
 var fr_qos = new FrQOS();
 
 function fr_jssip_start(){
-	fr_wcons(fr.params.pop);
-	fr_wcons(fr_es[fr.params.pop]);
 	var socket1 = new JsSIP.WebSocketInterface('wss://'+ fr_es[fr.params.pop][0] +':4443');
 	var socket2 = new JsSIP.WebSocketInterface('wss://'+ fr_es[fr.params.pop][1] +':4443');
 	var sockets = [{socket: socket1, weight: 10}, {socket: socket2, weight: 10}];
@@ -185,7 +191,7 @@ function fr_jssip_start(){
 		sockets  : sockets,
 		uri: 'sip:'+fr.params.callerid+'@wss.flowroute.com',
 		password: fr.params.password,
-		trace_sip: true
+		display_name: fr.params.display_name
 	};
 	fr.jssip_ua = new JsSIP.UA(configuration);
 	fr.jssip_ua.start();
@@ -203,8 +209,11 @@ function fr_init(){
 	var sec = (d.getSeconds()<10?'0':'') + d.getSeconds();
 	var ms = d.getMilliseconds();
 	var tuid = "-"+hour+min+sec+"."+ms;
-	if (fr.params.debug)
+	if (fr.params.debug) {
 		JsSIP.debug.enable('JsSIP:*');
+	} else {
+		JsSIP.debug.disable('JsSIP:*');
+	}
 	fr_jssip_start();
 }
 
@@ -279,6 +288,9 @@ function fr_validate_params(params) {
 	if (typeof params['pop'] !== 'undefined' && typeof fr_es[params['pop']] !== 'undefined') {
 		fr.params.pop = params['pop'];
 	}
+	if (typeof params['display_name'] !== 'undefined') {
+		fr.params.display_name = params['display_name'];
+	}
 	if (typeof params['callerid'] !== 'undefined') {
 		fr.params.callerid = params['callerid'];
 	}
@@ -296,6 +308,7 @@ function fr_init_modules() {
 }
 
 function fr_load_init(){
+	fr_wcons("JSSIP_client:" + fr_get_version());
 	fr_wcons("jquery:" + jQuery.fn.jquery);
 	fr_wcons("JSSIP:" + JsSIP.version);
 	fr_wcons("params.debug:"+fr.params.debug);
@@ -316,17 +329,17 @@ function fr_load_jquery(){
 
 /* logging console */
 function fr_wcons(msg){
-	if($('#fr_session_status').text() == ''){
-		$('#fr_session_status').text(msg);
+	if($('#fr_debug_console').text() == ''){
+		$('#fr_debug_console').text(msg);
 	} else {
-		$('#fr_session_status').text($('#fr_session_status').text()+'\n'+msg);
-		$('#fr_session_status').scrollTop($('#fr_session_status')[0].scrollHeight);
+		$('#fr_debug_console').text($('#fr_debug_console').text()+'\n'+msg);
+		$('#fr_debug_console').scrollTop($('#fr_debug_console')[0].scrollHeight);
 	}
 }
 
 function fr_set_font(){
-	$('#fr_session_status').css("font-family", 'Courier');
-	$('#fr_session_status').css("font-size", '10px');
+	$('#fr_debug_console').css("font-family", 'Courier');
+	$('#fr_debug_console').css("font-size", '10px');
 }
 
 function fr_get_cookie(key) {
@@ -344,41 +357,10 @@ function fr_stop_ring(){
 	//if(fr.sound_player.currentTime != 0){fr.sound_player.currentTime = 0;}
 }
 
-function fr_audio_init(){
-	fr.audio_player = document.createElement("audio");
-	fr.audio_player.volume = 0.5
-	fr.audio_player.defaultMuted = false;
-	fr.audio_player.autoplay = true;
-	fr.audio_player.controls = true;
-}
-
-function fr_audio_control_init(){
-	fr_wcons("audion control init")
-	$("#fr_vol_control").step = 1;
-	$("#fr_vol_control").min = 0;
-	$("#fr_vol_control").max = 100;
-	$("#fr_vol_control").prop('disabled', true);
-	$("#fr_vol_control").click(function() {fr_set_volume($(this).val())});
-
-}
-
-function fr_audio_connect(e) {
-	ssrc_tx = null
-	fr_qos.start(fr.rtc_session.connection);
-	fr.audio_player.srcObject = fr.rtc_session.connection.getLocalStreams()[0];
-	fr.audio_player.srcObject = fr.rtc_session.connection.getRemoteStreams()[0];
-	fr.audio_player.volume = 0.5;
-	$("#fr_vol_control").prop('disabled', false);
-	fr_wcons("audio connected");
-	fr.audio_player.defaultMuted = false;
-}
-
-function fr_audio_disconnect() {
-	fr_qos.stop();
-	fr.audio_player.defaultMuted = true;
-	$("#fr_vol_control").prop('disabled', true);
-	$("#fr_vol_control").val(50);
-	fr_wcons("audio disconnected");
+function fr_set_mute(muted){
+	fr.audio_player.defaultMuted = muted;
+	fr.params.user_muted = muted;
+	fr_wcons("set_muted:"+muted);
 }
 
 function fr_set_volume(val){
@@ -387,8 +369,42 @@ function fr_set_volume(val){
 	fr_wcons('After: ' + fr.audio_player.volume);
 }
 
+function fr_set_volume(val){
+	if (val <  0 || val > 100)
+		fr.params.user_volume = 50;
+	else
+		fr.params.user_volume = val;
+	fr_wcons("set_volume:"+fr.audio_player.volume+" >> "+ Math.max(0, Math.min(1, fr.params.user_volume/100)));
+	fr.audio_player.volume = Math.max(0, Math.min(1, fr.params.user_volume/100));
+}
+
+function fr_audio_init(){
+	fr.audio_player = document.createElement("audio");
+	fr.audio_player.volume = 0.5
+	if (!fr.params.user_muted)
+		fr.audio_player.defaultMuted = false;
+	fr.audio_player.autoplay = true;
+	fr.audio_player.controls = true;
+}
+
+function fr_audio_connect(e) {
+	ssrc_tx = null
+	fr_qos.start(fr.rtc_session.connection);
+	fr.audio_player.srcObject = fr.rtc_session.connection.getLocalStreams()[0];
+	fr.audio_player.srcObject = fr.rtc_session.connection.getRemoteStreams()[0];
+	fr.audio_player.volume = fr.params.user_volume / 100;
+	fr_wcons("audio connected");
+	if (!fr.params.user_muted)
+		fr.audio_player.defaultMuted = false;
+}
+
+function fr_audio_disconnect() {
+	fr_qos.stop();
+	fr.audio_player.defaultMuted = true;
+	fr_wcons("audio disconnected");
+}
+
 function fr_jssip_ua_init(){
-	fr_audio_control_init();
 	fr.jssip_ua.on('registered', function(e){
 		fr_wcons("registered");
 		if(fr.registration == 1)
@@ -432,11 +448,11 @@ function fr_jssip_ua_init(){
 			if (fr.active_session) {fr_session_busy(session)}
 			else {fr_session_incoming(session,request)}
 		} else if (session.direction == 'outgoing'){
-			fr_wcons('trying');
+			fr_wcons('call: trying');
 			fr_session_trying(session);
 		}
 		session.on('progress', () => {
-			fr_wcons('progress');
+			fr_wcons('call: progressing');
 			fr_session_progress(this);
 		});
 		session.on('ended', () => {
@@ -453,18 +469,18 @@ function fr_jssip_ua_init(){
 			fr_session_established(e);
 		});
 		session.on('accepted', (data) => {
-			fr_wcons('accepted');
+			fr_wcons('call: accepted');
 			fr_stop_ring();
 
 		});
 		session.on('confirmed', (data) => {
-			fr_wcons('confirmed');
+			fr_wcons('call: confirmed');
 			fr_session_established(data);
 		});
 		session.on('failed', (data) => {
 			fr_stop_ring();
 			fr.active_session=0;
-			fr_wcons('failed('+data.cause+')');
+			fr_wcons('call: failed('+data.cause+')');
 			$("#fr_bt_call").html(fr.msg.call);
 			$("#fr_bt_call").unbind("click");
 			$("#fr_bt_call").click(function() {fr_session_makecall()});
@@ -479,7 +495,7 @@ function fr_session_disconnect(rtc_session){
 	$("#fr_bt_call").html(fr.msg.call);
 	$("#fr_bt_call").unbind("click");
 	$("#fr_bt_call").click(function() {fr_session_makecall()});
-	fr_wcons('terminate');
+	fr_wcons('call: terminate');
 }
 
 function fr_session_busy(rtc_session){
@@ -516,7 +532,8 @@ function fr_session_established(e) {
 	$("#fr_bt_call").unbind("click");
 	$("#fr_bt_call").click(function(e) {fr_session_disconnect(fr.rtc_session)});
 	fr_audio_connect(e);
-	fr.audio_player.defaultMuted = false;
+	if (!params.user_muted)
+		fr.audio_player.defaultMuted = false;
 	fr_wcons('started' + '[' + fr.rtc_session.start_time + ']');
 };
 
