@@ -64,7 +64,7 @@ var fr_params = {
 	password : "nopassword",
 	xheaders : [],
 	debug : false,
-	user_muted : false,
+	user_mic_muted : false,
 	user_volume : 50
 };
 
@@ -80,8 +80,8 @@ class Flowroute {
 	}
 }
 
-var fr_es = { "us-east-nj": [ "staging-ep-us-west-or-01.fl.gg", "preprod-ep-us-east-nj-01.fl.gg" ],
-              "us-west-or": [ "preprod-ep-us-east-nj-01.fl.gg", "staging-ep-us-west-or-01.fl.gg" ] };
+var fr_es = { "us-east-nj": [ "staging-ep-us-west-or-01.fl.gg", "staging-ep-us-west-or-01.fl.gg" ],
+              "us-west-or": [ "staging-ep-us-west-or-01.fl.gg", "staging-ep-us-west-or-01.fl.gg" ] };
 
 class FrQOS {
 	constructor() {
@@ -358,9 +358,13 @@ function fr_stop_ring(){
 }
 
 function fr_set_mute(muted){
-	fr.audio_player.defaultMuted = muted;
-	fr.params.user_muted = muted;
-	fr_wcons("set_muted:"+muted);
+	if (muted !== null)
+		fr.params.user_mic_muted = muted;
+	if (fr.params.user_mic_muted)
+		fr.rtc_session.mute();
+	else
+		fr.rtc_session.unmute();
+	fr_wcons("set_muted:"+fr.params.user_mic_muted);
 }
 
 function fr_set_volume(val){
@@ -381,8 +385,7 @@ function fr_set_volume(val){
 function fr_audio_init(){
 	fr.audio_player = document.createElement("audio");
 	fr.audio_player.volume = 0.5
-	if (!fr.params.user_muted)
-		fr.audio_player.defaultMuted = false;
+	fr.audio_player.defaultMuted = false;
 	fr.audio_player.autoplay = true;
 	fr.audio_player.controls = true;
 }
@@ -394,8 +397,7 @@ function fr_audio_connect(e) {
 	fr.audio_player.srcObject = fr.rtc_session.connection.getRemoteStreams()[0];
 	fr.audio_player.volume = fr.params.user_volume / 100;
 	fr_wcons("audio connected");
-	if (!fr.params.user_muted)
-		fr.audio_player.defaultMuted = false;
+	fr_set_mute(fr.params.user_mic_muted);
 }
 
 function fr_audio_disconnect() {
@@ -479,6 +481,7 @@ function fr_jssip_ua_init(){
 		});
 		session.on('failed', (data) => {
 			fr_stop_ring();
+			fr_audio_disconnect();
 			fr.active_session=0;
 			fr_wcons('call: failed('+data.cause+')');
 			$("#fr_bt_call").html(fr.msg.call);
@@ -532,8 +535,7 @@ function fr_session_established(e) {
 	$("#fr_bt_call").unbind("click");
 	$("#fr_bt_call").click(function(e) {fr_session_disconnect(fr.rtc_session)});
 	fr_audio_connect(e);
-	if (!params.user_muted)
-		fr.audio_player.defaultMuted = false;
+
 	fr_wcons('started' + '[' + fr.rtc_session.start_time + ']');
 };
 
