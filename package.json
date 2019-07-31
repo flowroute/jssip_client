@@ -1,0 +1,29 @@
+{
+  "name": "jssip_client",
+  "version": "0.1.3",
+  "description": "Flowroute SIP over WebSocket and WebRTC JavaScript client",
+  "main": "fr.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flowroute/jssip_client.git"
+  },
+  "keywords": [
+    "telephony",
+    "sip",
+    "webrtc",
+    "websocket",
+    "flowroute"
+  ],
+  "author": "jchavanton",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/flowroute/jssip_client/issues"
+  },
+  "homepage": "https://github.com/flowroute/jssip_client#readme"
+}
