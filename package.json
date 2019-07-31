@@ -25,5 +25,9 @@
   "bugs": {
     "url": "https://github.com/flowroute/jssip_client/issues"
   },
-  "homepage": "https://github.com/flowroute/jssip_client#readme"
+  "homepage": "https://github.com/flowroute/jssip_client#readme",
+  "dependencies": {
+    "jssip": "^3.3.6",
+    "webrtc-adapter": "^7.2.9"
+  }
 }
