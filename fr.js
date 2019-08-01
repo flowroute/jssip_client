@@ -40,12 +40,14 @@ export default class FlowrouteClient {
       },
     ];
 
+    this.onCallAction = () => {};
     this.sipUserAgent = new UA({
       sockets,
       uri: `sip:${this.params.callerid}@wss.flowroute.com`,
       password: this.params.password,
       display_name: this.params.display_name,
     });
+    this.sipUserAgent.on('newRTCSession', this.handleNewRTCSession.bind(this));
   }
 
   on(event, callback) {
@@ -130,7 +132,7 @@ export default class FlowrouteClient {
 
     const {
       to,
-      onStateChange = () => {},
+      onCallAction = () => {},
     } = options;
 
     const did = this.params.did || to;
@@ -144,38 +146,7 @@ export default class FlowrouteClient {
       this.setAudioElement();
     }
 
-    this.sipUserAgent.on('newRTCSession', ({ session }) => {
-      this.activeCall = session;
-
-      session.on('started', (payload) => {
-        this.connectAudio(session);
-        onStateChange({ type: 'started', payload });
-      });
-
-      session.on('progress', (payload) => {
-        onStateChange({ type: 'progress', payload });
-      });
-
-      session.on('ended', (payload) => {
-        this.disconnectAudio();
-        onStateChange({ type: 'ended', payload });
-      });
-
-      session.on('accepted', (payload) => {
-        onStateChange({ type: 'accepted', payload });
-      });
-
-      session.on('confirmed', (payload) => {
-        this.connectAudio(session);
-        onStateChange({ type: 'confirmed', payload });
-      });
-
-      session.on('failed', (payload) => {
-        this.disconnectAudio();
-        onStateChange({ type: 'failed', payload });
-      });
-    });
-
+    this.onCallAction = onCallAction;
     this.sipUserAgent.call(`sip:${did}@sip.flowroute.com`, {
       mediaConstraints: { audio: true, video: false },
       extraHeaders: this.params.xheaders,
@@ -195,6 +166,38 @@ export default class FlowrouteClient {
 
     this.activeCall.terminate();
     this.activeCall = null;
+  }
+
+  handleNewRTCSession({ session }) {
+    this.activeCall = session;
+
+    session.on('started', (payload) => {
+      this.connectAudio(session);
+      this.onCallAction({ type: 'started', payload });
+    });
+
+    session.on('progress', (payload) => {
+      this.onCallAction({ type: 'progress', payload });
+    });
+
+    session.on('ended', (payload) => {
+      this.disconnectAudio();
+      this.onCallAction({ type: 'ended', payload });
+    });
+
+    session.on('accepted', (payload) => {
+      this.onCallAction({ type: 'accepted', payload });
+    });
+
+    session.on('confirmed', (payload) => {
+      this.connectAudio(session);
+      this.onCallAction({ type: 'confirmed', payload });
+    });
+
+    session.on('failed', (payload) => {
+      this.disconnectAudio();
+      this.onCallAction({ type: 'failed', payload });
+    });
   }
 }
 

@@ -13,11 +13,15 @@
     <option value="13125867146">13125867146 (FreeSwitch)</option>
   </select>
   <button id="call-btn" type="button" onclick="doCall()">call</button>
+  <br/>
+  <br/>
+  <textarea id="debug-console" rows="10" cols="30" readonly></textarea>
 
   <script src="./bundle.js"></script>
   <script>
     window.numberInput = document.getElementById('number');
     window.callBtn = document.getElementById('call-btn');
+    window.debugConsole = document.getElementById('debug-console');
 
     window.flowrouteClient = new FlowrouteClient({ debug: true });
     window.flowrouteClient.start();
@@ -25,7 +29,7 @@
     function doCall() {
       window.flowrouteClient.call({
         to: window.numberInput.value,
-        onStateChange: handleCallChange,
+        onCallAction: handleCallAction,
       });
     }
 
@@ -33,7 +37,13 @@
       window.flowrouteClient.hangup();
     }
 
-    function handleCallChange(action) {
+    function writeDebugLine(message) {
+      debugConsole.value += message + '\n';
+      debugConsole.scrollTop = debugConsole.scrollHeight;
+    }
+
+    function handleCallAction(action) {
+      writeDebugLine('Call state change: ' + action.type);
       switch (action.type) {
         case 'accepted':
         case 'confirmed':
