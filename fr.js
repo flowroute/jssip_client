@@ -187,55 +187,6 @@ export default class FlowrouteClient {
   }
 
   /**
-   * @private
-   */
-  handleNewRTCSession({ session }) {
-    this.activeCall = session;
-    const defaultCallEventsToHandle = [
-      'peerconnection',
-      'connecting',
-      'sending',
-      'progress',
-      'accepted',
-      'newDTMF',
-      'newInfo',
-      'hold',
-      'unhold',
-      'muted',
-      'unmuted',
-      'reinvite',
-      'update',
-      'refer',
-      'replaces',
-      'sdp',
-      'icecandidate',
-      'getusermediafailed',
-    ];
-    defaultCallEventsToHandle.forEach((eventType) => {
-      session.on(eventType, (payload) => {
-        this.onCallAction({ type: eventType, payload });
-      });
-    });
-
-    session.on('confirmed', (payload) => {
-      this.connectAudio(session);
-      this.onCallAction({ type: 'confirmed', payload });
-    });
-
-    session.on('ended', (payload) => {
-      this.disconnectAudio();
-      this.activeCall = null;
-      this.onCallAction({ type: 'ended', payload });
-    });
-
-    session.on('failed', (payload) => {
-      this.disconnectAudio();
-      this.activeCall = null;
-      this.onCallAction({ type: 'failed', payload });
-    });
-  }
-
-  /**
    * Set audio player volume.
    *
    * @param {number|string} value between 0 and 100
@@ -286,6 +237,55 @@ export default class FlowrouteClient {
     this.audioPlayerElement.autoplay = true;
     this.audioPlayerElement.controls = true;
     this.audioPlayerElement.volume = this.outputVolume;
+  }
+
+  /**
+   * @private
+   */
+  handleNewRTCSession({ session }) {
+    this.activeCall = session;
+    const defaultCallEventsToHandle = [
+      'peerconnection',
+      'connecting',
+      'sending',
+      'progress',
+      'accepted',
+      'newDTMF',
+      'newInfo',
+      'hold',
+      'unhold',
+      'muted',
+      'unmuted',
+      'reinvite',
+      'update',
+      'refer',
+      'replaces',
+      'sdp',
+      'icecandidate',
+      'getusermediafailed',
+    ];
+    defaultCallEventsToHandle.forEach((eventType) => {
+      session.on(eventType, (payload) => {
+        this.onCallAction({ type: eventType, payload });
+      });
+    });
+
+    session.on('confirmed', (payload) => {
+      this.connectAudio(session);
+      this.onCallAction({ type: 'confirmed', payload });
+    });
+
+    session.on('ended', (payload) => {
+      this.disconnectAudio();
+      this.activeCall = null;
+      this.onCallAction({ type: 'ended', payload });
+    });
+
+    session.on('failed', (payload) => {
+      this.disconnectAudio();
+      this.activeCall = null;
+      this.onCallAction({ type: 'failed', payload });
+    });
   }
 
   /**
