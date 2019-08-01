@@ -13,6 +13,9 @@ const FR_POINTS_OF_PRESENCE_DOMAINS = {
   ],
 };
 
+/**
+ * @see https://jssip.net/documentation/3.3.x/api/
+ */
 export default class FlowrouteClient {
   constructor(params = {}) {
     this.params = {
@@ -25,6 +28,7 @@ export default class FlowrouteClient {
       debug: false,
       user_mic_muted: false,
       user_volume: 50,
+      onUserAgentAction: () => {},
       ...params,
     };
 
@@ -40,22 +44,38 @@ export default class FlowrouteClient {
       },
     ];
 
+    this.isRegistered = false;
     this.onCallAction = () => {};
+    this.onUserAgentAction = this.params.onUserAgentAction;
     this.sipUserAgent = new UA({
       sockets,
       uri: `sip:${this.params.callerid}@wss.flowroute.com`,
       password: this.params.password,
       display_name: this.params.display_name,
     });
+
     this.sipUserAgent.on('newRTCSession', this.handleNewRTCSession.bind(this));
-  }
 
-  on(event, callback) {
-    if (event === 'newRTCSession') {
-      throw new Error('Do not override client "newRTCSession" callback');
-    }
+    this.sipUserAgent.on('registered', (payload) => {
+      this.isRegistered = true;
+      this.onUserAgentAction({ type: 'registered', payload });
+    });
 
-    this.sipUserAgent.on(event, callback);
+    const defaultAgentEventsToHandle = [
+      'connecting',
+      'connected',
+      'disconnected',
+      'unregistered',
+      'registrationFailed',
+      'registrationExpiring',
+      'newMessage',
+      'sipEvent',
+    ];
+    defaultAgentEventsToHandle.forEach((eventType) => {
+      this.sipUserAgent.on(eventType, (payload) => {
+        this.onUserAgentAction({ type: eventType, payload });
+      });
+    });
   }
 
   start() {
@@ -124,6 +144,10 @@ export default class FlowrouteClient {
   }
 
   call(options = {}) {
+    if (!this.isRegistered) {
+      throw new Error('User agent not registered yet');
+    }
+
     if (this.activeCall) {
       throw new Error('Already has active call');
     } else {
@@ -170,28 +194,40 @@ export default class FlowrouteClient {
 
   handleNewRTCSession({ session }) {
     this.activeCall = session;
-
-    session.on('started', (payload) => {
-      this.connectAudio(session);
-      this.onCallAction({ type: 'started', payload });
-    });
-
-    session.on('progress', (payload) => {
-      this.onCallAction({ type: 'progress', payload });
-    });
-
-    session.on('ended', (payload) => {
-      this.disconnectAudio();
-      this.onCallAction({ type: 'ended', payload });
-    });
-
-    session.on('accepted', (payload) => {
-      this.onCallAction({ type: 'accepted', payload });
+    const defaultCallEventsToHandle = [
+      'peerconnection',
+      'connecting',
+      'sending',
+      'progress',
+      'accepted',
+      'newDTMF',
+      'newInfo',
+      'hold',
+      'unhold',
+      'muted',
+      'unmuted',
+      'reinvite',
+      'update',
+      'refer',
+      'replaces',
+      'sdp',
+      'icecandidate',
+      'getusermediafailed',
+    ];
+    defaultCallEventsToHandle.forEach((eventType) => {
+      session.on(eventType, (payload) => {
+        this.onCallAction({ type: eventType, payload });
+      });
     });
 
     session.on('confirmed', (payload) => {
       this.connectAudio(session);
       this.onCallAction({ type: 'confirmed', payload });
+    });
+
+    session.on('ended', (payload) => {
+      this.disconnectAudio();
+      this.onCallAction({ type: 'ended', payload });
     });
 
     session.on('failed', (payload) => {
