@@ -26,6 +26,7 @@
   "homepage": "https://github.com/flowroute/jssip_client#readme",
   "dependencies": {
     "jssip": "^3.3.6",
+    "lodash.first": "^3.0.0",
     "webrtc-adapter": "^7.2.9"
   },
   "devDependencies": {

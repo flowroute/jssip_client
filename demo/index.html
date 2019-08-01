@@ -7,10 +7,48 @@
   <meta name="author" content="Mazuh">
 </head>
 <body>
+  <select id="number">
+    <option value="14503001085" selected>14503001085 (VoIP Patrol)</option>
+    <option value="12012673228">12012673228 (Julien Mobile)</option>
+    <option value="13125867146">13125867146 (FreeSwitch)</option>
+  </select>
+  <button id="call-btn" type="button" onclick="doCall()">call</button>
+
   <script src="./bundle.js"></script>
   <script>
-    const client = new FlowrouteClient({ debug: true });
-    client.start();
-  </script>
+    window.numberInput = document.getElementById('number');
+    window.callBtn = document.getElementById('call-btn');
+
+    window.flowrouteClient = new FlowrouteClient({ debug: true });
+    window.flowrouteClient.start();
+
+    function doCall() {
+      window.flowrouteClient.call({
+        to: window.numberInput.value,
+        onStateChange: handleCallChange,
+      });
+    }
+
+    function doHangup() {
+      window.flowrouteClient.hangup();
+    }
+
+    function handleCallChange(action) {
+      switch (action.type) {
+        case 'accepted':
+        case 'confirmed':
+          window.callBtn.innerText = 'hangup';
+          window.callBtn.onclick = doHangup;
+          break;
+        case 'ended':
+          window.callBtn.innerText = 'call';
+          window.callBtn.onclick = doCall;
+          break;
+        default:
+          console.warn('Ignored call state:', action.type, action.payload);
+          break;
+      }
+    }
+</script>
 </body>
 </html>
