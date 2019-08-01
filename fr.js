@@ -14,9 +14,20 @@ const FR_POINTS_OF_PRESENCE_DOMAINS = {
 };
 
 /**
+ * Flowroute SIP over WebSocket and WebRTC JavaScript client.
+ *
+ * This class is a facade for JsSIP API, so it'll return many
+ * of its types and dispatch many of its events, with some
+ * changes to ease a Flowroute client implementation.
+ *
  * @see https://jssip.net/documentation/3.3.x/api/
  */
 export default class FlowrouteClient {
+  /**
+   * Init a JsSIP user agent.
+   *
+   * @param {object} params
+   */
   constructor(params = {}) {
     this.params = {
       did: null,
@@ -76,6 +87,9 @@ export default class FlowrouteClient {
     });
   }
 
+  /**
+   * Connect to the signaling server, registering user agent.
+   */
   start() {
     if (this.params.debug) {
       debug.enable('JsSIP:*');
@@ -86,51 +100,19 @@ export default class FlowrouteClient {
     this.sipUserAgent.start();
   }
 
-  restart() {
+  /**
+   * Disconnect from signaling server.
+   */
+  stop() {
     this.sipUserAgent.stop();
-    this.sipUserAgent.start();
   }
 
-  setAudioElement(domNode) {
-    if (domNode === undefined) {
-      const created = document.createElement('audio');
-      this.audioPlayerElement = created;
-    } else if (typeof domNode === 'string') {
-      const found = document.querySelector(domNode);
-      if (!found || found.tagName.toLowerCase() !== 'audio') {
-        throw new Error('Invalid DOM selector provided for audio element');
-      }
-
-      this.audioPlayerElement = found;
-    } else {
-      this.audioPlayerElement = domNode;
-    }
-
-    this.audioPlayerElement.defaultMuted = false;
-    this.audioPlayerElement.autoplay = true;
-    this.audioPlayerElement.controls = true;
-  }
-
-  connectAudio(session) {
-    if (this.audioPlayerElement) {
-      this.disconnectAudio();
-    } else {
-      throw new Error('Tried to connect audio but no player element provided');
-    }
-
-    const remoteStreams = session.connection.getRemoteStreams();
-    this.audioPlayerElement.srcObject = first(remoteStreams);
-  }
-
-  disconnectAudio() {
-    if (!this.audioPlayerElement || !this.audioPlayerElement.srcObject) {
-      return;
-    }
-
-    this.audioPlayerElement.srcObject.getTracks().forEach(track => track.stop());
-    this.audioPlayerElement.srcObject = null;
-  }
-
+  /**
+   * Set to what number this client will call.
+   * (You may pass this by `call` method args too.)
+   *
+   * @param {string} did
+   */
   setDID(did) {
     if (typeof did !== 'string') {
       throw new Error('Expected DID to be a string');
@@ -141,6 +123,16 @@ export default class FlowrouteClient {
     this.params = { ...this.params, did };
   }
 
+  /**
+   * Make a call.
+   * Also initialize any necessary DOM node for audio output.
+   * Created call will be available as `activeCall` attribute,
+   * that is just a `RTCSession` instance.
+   *
+   * @param {object}   options
+   * @param {string}   options.to number destiny
+   * @param {function} options.onCallAction callback for call actions
+   */
   call(options = {}) {
     if (!this.isRegistered) {
       throw new Error('User agent not registered yet');
@@ -181,6 +173,9 @@ export default class FlowrouteClient {
     });
   }
 
+  /**
+   * Hangup current `activeCall` and unassign it.
+   */
   hangup() {
     if (!this.activeCall) {
       throw new Error('There is no active call to hangup');
@@ -190,6 +185,9 @@ export default class FlowrouteClient {
     this.activeCall = null;
   }
 
+  /**
+   * @private
+   */
   handleNewRTCSession({ session }) {
     this.activeCall = session;
     const defaultCallEventsToHandle = [
@@ -232,6 +230,55 @@ export default class FlowrouteClient {
       this.disconnectAudio();
       this.onCallAction({ type: 'failed', payload });
     });
+  }
+
+  /**
+   * @private
+   */
+  setAudioElement(domNode) {
+    if (domNode === undefined) {
+      const created = document.createElement('audio');
+      this.audioPlayerElement = created;
+    } else if (typeof domNode === 'string') {
+      const found = document.querySelector(domNode);
+      if (!found || found.tagName.toLowerCase() !== 'audio') {
+        throw new Error('Invalid DOM selector provided for audio element');
+      }
+
+      this.audioPlayerElement = found;
+    } else {
+      this.audioPlayerElement = domNode;
+    }
+
+    this.audioPlayerElement.defaultMuted = false;
+    this.audioPlayerElement.autoplay = true;
+    this.audioPlayerElement.controls = true;
+  }
+
+  /**
+   * @private
+   */
+  connectAudio(session) {
+    if (this.audioPlayerElement) {
+      this.disconnectAudio();
+    } else {
+      throw new Error('Tried to connect audio but no player element provided');
+    }
+
+    const remoteStreams = session.connection.getRemoteStreams();
+    this.audioPlayerElement.srcObject = first(remoteStreams);
+  }
+
+  /**
+   * @private
+   */
+  disconnectAudio() {
+    if (!this.audioPlayerElement || !this.audioPlayerElement.srcObject) {
+      return;
+    }
+
+    this.audioPlayerElement.srcObject.getTracks().forEach(track => track.stop());
+    this.audioPlayerElement.srcObject = null;
   }
 }
 
