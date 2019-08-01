@@ -15,7 +15,7 @@
   <button id="call-btn" type="button" onclick="doCall()">call</button>
   <br/>
   <br/>
-  <textarea id="debug-console" rows="10" cols="30" readonly></textarea>
+  <textarea id="debug-console" rows="20" cols="30" readonly></textarea>
 
   <script src="./bundle.js"></script>
   <script>
@@ -23,7 +23,10 @@
     window.callBtn = document.getElementById('call-btn');
     window.debugConsole = document.getElementById('debug-console');
 
-    window.flowrouteClient = new FlowrouteClient({ debug: true });
+    window.flowrouteClient = new FlowrouteClient({
+      debug: true,
+      onUserAgentAction: handleUserAgentAction,
+    });
     window.flowrouteClient.start();
 
     function doCall() {
@@ -42,8 +45,12 @@
       debugConsole.scrollTop = debugConsole.scrollHeight;
     }
 
+    function handleUserAgentAction(action) {
+      writeDebugLine('User agent action: ' + action.type);
+    }
+
     function handleCallAction(action) {
-      writeDebugLine('Call state change: ' + action.type);
+      writeDebugLine('Call action: ' + action.type);
       switch (action.type) {
         case 'accepted':
         case 'confirmed':
