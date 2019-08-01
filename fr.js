@@ -224,11 +224,13 @@ export default class FlowrouteClient {
 
     session.on('ended', (payload) => {
       this.disconnectAudio();
+      this.activeCall = null;
       this.onCallAction({ type: 'ended', payload });
     });
 
     session.on('failed', (payload) => {
       this.disconnectAudio();
+      this.activeCall = null;
       this.onCallAction({ type: 'failed', payload });
     });
   }
