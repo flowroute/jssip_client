@@ -20,19 +20,17 @@ export default class FlowrouteClient {
   constructor(params = {}) {
     this.params = {
       did: null,
-      pop: 'us-east-nj',
-      callerid: 'anonymous',
-      display_name: null,
+      pointOfPresence: 'us-east-nj',
+      callerId: 'anonymous',
+      displayName: null,
       password: 'nopassword',
-      xheaders: [],
+      extraHeaders: [],
       debug: false,
-      user_mic_muted: false,
-      user_volume: 50,
       onUserAgentAction: () => {},
       ...params,
     };
 
-    const urls = FR_POINTS_OF_PRESENCE_DOMAINS[this.params.pop];
+    const urls = FR_POINTS_OF_PRESENCE_DOMAINS[this.params.pointOfPresence];
     const sockets = [
       {
         socket: new WebSocketInterface(`wss://${urls[0]}:4443`),
@@ -49,9 +47,9 @@ export default class FlowrouteClient {
     this.onUserAgentAction = this.params.onUserAgentAction;
     this.sipUserAgent = new UA({
       sockets,
-      uri: `sip:${this.params.callerid}@wss.flowroute.com`,
+      uri: `sip:${this.params.callerId}@wss.flowroute.com`,
       password: this.params.password,
-      display_name: this.params.display_name,
+      display_name: this.params.displayName,
     });
 
     this.sipUserAgent.on('newRTCSession', this.handleNewRTCSession.bind(this));
@@ -173,7 +171,7 @@ export default class FlowrouteClient {
     this.onCallAction = onCallAction;
     this.sipUserAgent.call(`sip:${did}@sip.flowroute.com`, {
       mediaConstraints: { audio: true, video: false },
-      extraHeaders: this.params.xheaders,
+      extraHeaders: this.params.extraHeaders,
       RTCConstraints: {
         optional: [
           { DtlsSrtpKeyAgreement: 'true' },
