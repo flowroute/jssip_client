@@ -58,7 +58,7 @@ var fr_msg_en = {
 
 var fr_params = {
 	did : null,
-	pop : "us-west-or",
+	pop : "us-east-nj",
 	callerid : "anonymous",
 	display_name : null,
 	password : "nopassword",
