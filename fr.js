@@ -53,6 +53,7 @@ export default class FlowrouteClient {
       },
     ];
 
+    this.outputVolume = 1;
     this.isRegistered = false;
     this.onCallAction = () => {};
     this.onUserAgentAction = this.params.onUserAgentAction;
@@ -233,6 +234,35 @@ export default class FlowrouteClient {
   }
 
   /**
+   * Set audio player volume.
+   *
+   * @param {number|string} value between 0 and 100
+   */
+  setOutputVolume(value) {
+    const volume = parseInt(value, 10) / 100;
+    if (volume < 0) {
+      this.outputVolume = 0;
+    } else if (volume > 1) {
+      this.outputVolume = 1;
+    } else {
+      this.outputVolume = volume;
+    }
+
+    if (this.audioPlayerElement) {
+      this.audioPlayerElement.volume = this.outputVolume;
+    }
+  }
+
+  /**
+   * Get audio player volume.
+   *
+   * @return {number} between 0 and 100
+   */
+  getOutputVolume() {
+    return this.outputVolume * 100;
+  }
+
+  /**
    * @private
    */
   setAudioElement(domNode) {
@@ -253,6 +283,7 @@ export default class FlowrouteClient {
     this.audioPlayerElement.defaultMuted = false;
     this.audioPlayerElement.autoplay = true;
     this.audioPlayerElement.controls = true;
+    this.audioPlayerElement.volume = this.outputVolume;
   }
 
   /**

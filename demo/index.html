@@ -15,6 +15,12 @@
   <button id="call-btn" type="button" onclick="doCall()">call</button>
   <br/>
   <br/>
+  <label for="volume-range">
+    Volume:<br/>
+  </label>
+  <input value="100" id="volume-range" type="range" min="0" max="100" onchange="changeVolume(this.value)"/>
+  <br/>
+  <br/>
   <textarea id="debug-console" rows="20" cols="30" readonly></textarea>
 
   <script src="./bundle.js"></script>
@@ -22,6 +28,7 @@
     window.numberInput = document.getElementById('number');
     window.callBtn = document.getElementById('call-btn');
     window.debugConsole = document.getElementById('debug-console');
+    window.volumeRange = document.getElementById('volume-range');
 
     window.flowrouteClient = new FlowrouteClient({
       debug: true,
@@ -41,12 +48,16 @@
     }
 
     function writeDebugLine(message) {
-      debugConsole.value += message + '\n';
-      debugConsole.scrollTop = debugConsole.scrollHeight;
+      window.debugConsole.value += message + '\n';
+      window.debugConsole.scrollTop = debugConsole.scrollHeight;
     }
 
     function handleUserAgentAction(action) {
       writeDebugLine('User agent action: ' + action.type);
+    }
+
+    function changeVolume(value) {
+      window.flowrouteClient.setOutputVolume(value);
     }
 
     function handleCallAction(action) {
