@@ -30,11 +30,16 @@ export default class FlowrouteClient {
   /**
    * Init a JsSIP user agent.
    *
-   * @param {object} params
+   * @param {object}   params
+   * @param {string}   params.pointOfPresence one of `FR_POINTS_OF_PRESENCE_DOMAINS` keys
+   * @param {string}   params.callerId caller ID for building user agent URI
+   * @param {string}   params.displayName to be used on calls params
+   * @param {string}   params.password to be used on calls params
+   * @param {boolean}  params.debug will output to stdout JsSIP debugging logs
+   * @param {function} params.onUserAgentAction general callback for UA events and its payloads
    */
   constructor(params = {}) {
     this.params = {
-      did: null,
       pointOfPresence: 'us-west-or',
       callerId: 'anonymous',
       displayName: 'Flowroute Client Demo',
@@ -131,12 +136,11 @@ export default class FlowrouteClient {
   /**
    * Make a call.
    * Also initialize any necessary DOM node for audio output.
-   * Created call will be available as `activeCall` attribute,
-   * that is just a `RTCSession` instance.
+   * Created call will be available by `getActiveCall` getter method.
    *
    * @param {object}   options
    * @param {string}   options.to number destiny
-   * @param {function} options.onCallAction callback for call actions
+   * @param {function} options.onCallAction callback for call events and its payloads
    */
   call(options = {}) {
     if (!this.isRegistered) {
@@ -179,7 +183,24 @@ export default class FlowrouteClient {
   }
 
   /**
-   * Hangup current `activeCall` and unassign it.
+   * Getter of active call, i.e., a proxy for current RTC JsSIP session.
+   *
+   * If a call attempt was made but no "newRTCSession" user agent event
+   * was dispatched, then this should be `{}`, which is still a truthy JS object
+   * but with no available RTC methods to proxy. And while no call is made or the
+   * previous one was already hung up or failed, this should be the falsy `null`.
+   *
+   * When desired to hangup the session call, use `hangup` client method
+   * instead of directly terminating this returned session.
+   *
+   * @return {RTCSession|object}
+   */
+  getActiveCall() {
+    return this.activeCall;
+  }
+
+  /**
+   * Hangup current active call and unassign it.
    */
   hangup() {
     if (!this.activeCall) {
@@ -234,8 +255,7 @@ export default class FlowrouteClient {
   }
 
   /**
-   * Get a reference of `params.extraHeaders` attribute, including
-   * new ones passed by `pushExtraPrivateCallHeader` method.
+   * Get a reference of P-headers passed by `pushExtraPrivateCallHeader` method.
    *
    * @return {array}
    */
