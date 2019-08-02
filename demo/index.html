@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Flowroute JsSip Client</title>
-  <meta name="description" content="Simple demonstration of Flowroute JsSip Client">
+  <title>Flowroute WebRTC</title>
+  <meta name="description" content="Simple demonstration of Flowroute JsSIP Client">
   <meta name="author" content="Mazuh">
 </head>
 <body>
@@ -17,6 +17,11 @@
   <br/>
   <label for="volume-range">Volume:<br/></label>
   <input value="100" id="volume-range" type="range" min="0" max="100" onchange="changeVolume(this.value)" />
+  <br/>
+  <br/>
+  <label for="dtmf-input">DTMF:</label>
+  <input id="dtmf-input" />
+  <button type="button" onclick="sendDTMF()">Send</button>
   <br/>
   <br/>
   <label for="pheader-name">P-header name:</label>
@@ -37,6 +42,7 @@
     window.callBtn = document.getElementById('call-btn');
     window.debugConsole = document.getElementById('debug-console');
     window.volumeRange = document.getElementById('volume-range');
+    window.dtmfInput = document.getElementById('dtmf-input');
     window.pheaderName = document.getElementById('pheader-name');
     window.pheaderValue = document.getElementById('pheader-value');
     window.pheadersDisplayLine = document.getElementById('pheaders-display-line');
@@ -81,6 +87,11 @@
         window.flowrouteClient.getExtraCallHeaders().pop();
       }
       writeDebugLine('Headers:\n' + (window.flowrouteClient.getExtraCallHeaders().length ? window.flowrouteClient.getExtraCallHeaders() : ['Empty']).join(', '));
+    }
+
+    function sendDTMF() {
+      window.flowrouteClient.activeCall.sendDTMF(dtmfInput.value);
+      dtmfInput.value = '';
     }
 
     function handleUserAgentAction(action) {
