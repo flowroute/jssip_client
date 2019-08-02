@@ -1,6 +1,6 @@
 {
   "name": "jssip_client",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Flowroute SIP over WebSocket and WebRTC JavaScript client",
   "main": "src/FlowrouteClient.js",
   "scripts": {
