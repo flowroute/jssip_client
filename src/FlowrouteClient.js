@@ -1,6 +1,6 @@
 import 'webrtc-adapter';
 import first from 'lodash.first';
-import { UA, WebSocketInterface, debug } from 'jssip';
+import { UA, WebSocketInterface, debug } from 'jssip/lib/JsSIP';
 import QualityOfService from './QualityOfService';
 
 export const FR_POINTS_OF_PRESENCE_DOMAINS = {
