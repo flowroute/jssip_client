@@ -1,6 +1,7 @@
 import 'webrtc-adapter';
 import first from 'lodash.first';
 import { UA, WebSocketInterface, debug } from 'jssip';
+import QualityOfService from './src/QualityOfService';
 
 export const FR_POINTS_OF_PRESENCE_DOMAINS = {
   'us-east-nj': [
@@ -37,6 +38,7 @@ export default class FlowrouteClient {
    * @param {string}   params.password to be used on calls params
    * @param {boolean}  params.debug will output to stdout JsSIP debugging logs
    * @param {function} params.onUserAgentAction general callback for UA events and its payloads
+   * @param {function} params.intervalOfQualityReport in milliseconds
    */
   constructor(params = {}) {
     this.params = {
@@ -46,6 +48,7 @@ export default class FlowrouteClient {
       password: 'nopassword',
       extraHeaders: [],
       debug: false,
+      intervalOfQualityReport: undefined,
       onUserAgentAction: () => {},
       ...params,
     };
@@ -62,6 +65,7 @@ export default class FlowrouteClient {
       },
     ];
 
+    this.qualityOfServiceEmitter = null;
     this.outputVolume = 1;
     this.isRegistered = false;
     this.onCallAction = () => {};
@@ -291,7 +295,7 @@ export default class FlowrouteClient {
    * @private
    */
   handleNewRTCSession(rtcPayload) {
-    const { session } = rtcPayload;
+    const { session, request } = rtcPayload;
     this.activeCall = session;
 
     const defaultCallEventsToHandle = [
@@ -337,6 +341,13 @@ export default class FlowrouteClient {
       this.onCallAction({ type: 'failed', payload });
     });
 
+    this.qualityOfServiceEmitter = new QualityOfService(
+      this.sipUserAgent,
+      session.connection,
+      request.call_id,
+      this.params.did,
+      this.params.intervalOfQualityReport,
+    );
     this.onUserAgentAction({ type: 'newRTCSession', payload: rtcPayload });
   }
 
@@ -352,6 +363,7 @@ export default class FlowrouteClient {
 
     const remoteStreams = session.connection.getRemoteStreams();
     this.audioPlayerElement.srcObject = first(remoteStreams);
+    this.qualityOfServiceEmitter.start();
   }
 
   /**
@@ -364,6 +376,7 @@ export default class FlowrouteClient {
 
     this.audioPlayerElement.srcObject.getTracks().forEach(track => track.stop());
     this.audioPlayerElement.srcObject = null;
+    this.qualityOfServiceEmitter.stop();
   }
 }
 

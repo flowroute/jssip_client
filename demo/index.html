@@ -111,6 +111,7 @@
           window.callBtn.onclick = doHangup;
           break;
         case 'ended':
+        case 'failed':
           window.callBtn.innerText = 'Call';
           window.callBtn.onclick = doCall;
           break;
