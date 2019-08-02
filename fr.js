@@ -216,6 +216,30 @@ export default class FlowrouteClient {
   }
 
   /**
+   * Add a P-header to client calls.
+   *
+   * @param {string} name
+   * @param {string} value
+   */
+  pushExtraPrivateCallHeader(name, value) {
+    if (!name || !value) {
+      throw new Error('Provide name and value for adding P-header');
+    }
+
+    this.params.extraHeaders.push(`P-${name}: ${value}`);
+  }
+
+  /**
+   * Get a reference of `params.extraHeaders` attribute, including
+   * new ones passed by `pushExtraPrivateCallHeader` method.
+   *
+   * @return {array}
+   */
+  getExtraCallHeaders() {
+    return this.params.extraHeaders;
+  }
+
+  /**
    * @private
    */
   setAudioElement(domNode) {

@@ -12,16 +12,24 @@
     <option value="12012673228">12012673228 (Julien Mobile)</option>
     <option value="13125867146">13125867146 (FreeSwitch)</option>
   </select>
-  <button id="call-btn" type="button" onclick="doCall()">call</button>
+  <button id="call-btn" type="button" onclick="doCall()">Call</button>
   <br/>
   <br/>
-  <label for="volume-range">
-    Volume:<br/>
-  </label>
-  <input value="100" id="volume-range" type="range" min="0" max="100" onchange="changeVolume(this.value)"/>
+  <label for="volume-range">Volume:<br/></label>
+  <input value="100" id="volume-range" type="range" min="0" max="100" onchange="changeVolume(this.value)" />
+  <br/>
+  <br/>
+  <label for="pheader-name">P-header name:</label>
+  <input id="pheader-name" /><br/>
+  <label for="pheader-value">P-header value:</label>
+  <input id="pheader-value" /><br/>
+  <button type="button" onclick="addPHeader()">Add</button>
+  <button type="button" onclick="clearPHeaders()">Clear all</button>
   <br/>
   <br/>
   <textarea id="debug-console" rows="20" cols="30" readonly></textarea>
+  <br/>
+  <br/>
 
   <script src="./bundle.js"></script>
   <script>
@@ -29,6 +37,9 @@
     window.callBtn = document.getElementById('call-btn');
     window.debugConsole = document.getElementById('debug-console');
     window.volumeRange = document.getElementById('volume-range');
+    window.pheaderName = document.getElementById('pheader-name');
+    window.pheaderValue = document.getElementById('pheader-value');
+    window.pheadersDisplayLine = document.getElementById('pheaders-display-line');
 
     window.flowrouteClient = new FlowrouteClient({
       debug: true,
@@ -51,13 +62,27 @@
       window.debugConsole.value += message + '\n';
       window.debugConsole.scrollTop = debugConsole.scrollHeight;
     }
+    
+    function changeVolume(value) {
+      window.flowrouteClient.setOutputVolume(value);
+    }
+
+    function addPHeader() {
+      window.flowrouteClient.pushExtraPrivateCallHeader(pheaderName.value, pheaderValue.value);
+      pheaderName.value = '';
+      pheaderValue.value = '';
+      writeDebugLine('Headers:\n' + (window.flowrouteClient.getExtraCallHeaders().length ? window.flowrouteClient.getExtraCallHeaders() : ['Empty']).join(', '));
+    }
+
+    function clearPHeaders() {
+      while (window.flowrouteClient.getExtraCallHeaders().length) {
+        window.flowrouteClient.getExtraCallHeaders().pop();
+      }
+      writeDebugLine('Headers:\n' + (window.flowrouteClient.getExtraCallHeaders().length ? window.flowrouteClient.getExtraCallHeaders() : ['Empty']).join(', '));
+    }
 
     function handleUserAgentAction(action) {
       writeDebugLine('User agent action: ' + action.type);
-    }
-
-    function changeVolume(value) {
-      window.flowrouteClient.setOutputVolume(value);
     }
 
     function handleCallAction(action) {
@@ -65,11 +90,11 @@
       switch (action.type) {
         case 'accepted':
         case 'confirmed':
-          window.callBtn.innerText = 'hangup';
+          window.callBtn.innerText = 'Hangup';
           window.callBtn.onclick = doHangup;
           break;
         case 'ended':
-          window.callBtn.innerText = 'call';
+          window.callBtn.innerText = 'Call';
           window.callBtn.onclick = doCall;
           break;
         default:
