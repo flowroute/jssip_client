@@ -1,7 +1,7 @@
 import 'webrtc-adapter';
 import first from 'lodash.first';
 import { UA, WebSocketInterface, debug } from 'jssip';
-import QualityOfService from './src/QualityOfService';
+import QualityOfService from './QualityOfService';
 
 export const FR_POINTS_OF_PRESENCE_DOMAINS = {
   'us-east-nj': [
