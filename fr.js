@@ -21,9 +21,9 @@ export const FR_POINTS_OF_PRESENCE_DOMAINS = {
 /**
  * Flowroute SIP over WebSocket and WebRTC JavaScript client.
  *
- * This class is a facade for JsSIP API, so it'll return many
- * of its types and dispatch many of its events, with some
- * changes to ease a Flowroute client implementation.
+ * This class is a facade for WebRTC, DOM and JsSIP APIs,
+ * so it'll return many of its types and dispatch many of
+ * its events, with some changes to ease Flowroute apps work.
  *
  * @see https://jssip.net/documentation/3.3.x/api/
  */
@@ -142,9 +142,10 @@ export default class FlowrouteClient {
    * Also initialize any necessary DOM node for audio output.
    * Created call will be available by `getActiveCall` getter method.
    *
-   * @param {object}   options
-   * @param {string}   options.to number destiny
-   * @param {function} options.onCallAction callback for call events and its payloads
+   * @param {object}        options
+   * @param {string}        options.to number destiny
+   * @param {function}      options.onCallAction callback for call events and its payloads
+   * @param {object|string} options.audioConstraints callback for call events and its payloads
    */
   call(options = {}) {
     if (!this.isRegistered) {
@@ -175,7 +176,7 @@ export default class FlowrouteClient {
 
     this.onCallAction = onCallAction;
     this.sipUserAgent.call(`sip:${did}@sip.flowroute.com`, {
-      mediaConstraints: { audio: true, video: false },
+      mediaConstraints: { audio: options.audioConstraints || true, video: false },
       extraHeaders: this.params.extraHeaders,
       RTCConstraints: {
         optional: [
