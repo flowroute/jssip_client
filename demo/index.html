@@ -46,6 +46,8 @@
       onUserAgentAction: handleUserAgentAction,
     });
     window.flowrouteClient.start();
+    writeDebugLine('PO: ' + window.flowrouteClient.params.pointOfPresence);
+    writeDebugLine('Caller ID: ' + window.flowrouteClient.params.callerId);
 
     function doCall() {
       window.flowrouteClient.call({
