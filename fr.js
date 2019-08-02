@@ -2,14 +2,18 @@ import 'webrtc-adapter';
 import first from 'lodash.first';
 import { UA, WebSocketInterface, debug } from 'jssip';
 
-const FR_POINTS_OF_PRESENCE_DOMAINS = {
+export const FR_POINTS_OF_PRESENCE_DOMAINS = {
   'us-east-nj': [
     'staging-ep-us-west-or-01.fl.gg',
     'preprod-ep-us-east-nj-01.fl.gg',
   ],
   'us-west-or': [
-    'preprod-ep-us-east-nj-01.fl.gg',
-    'staging-ep-us-west-or-01.fl.gg',
+    'wr-us-west-or-01.webrtc.flowroute.com',
+    'wr-us-east-va-01.webrtc.flowroute.com',
+  ],
+  'us-east-va': [
+    'wr-us-east-va-01.webrtc.flowroute.com',
+    'wr-us-west-or-01.webrtc.flowroute.com',
   ],
 };
 
@@ -31,9 +35,9 @@ export default class FlowrouteClient {
   constructor(params = {}) {
     this.params = {
       did: null,
-      pointOfPresence: 'us-east-nj',
+      pointOfPresence: 'us-west-or',
       callerId: 'anonymous',
-      displayName: null,
+      displayName: 'Flowroute Client Demo',
       password: 'nopassword',
       extraHeaders: [],
       debug: false,
