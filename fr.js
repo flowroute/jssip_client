@@ -270,8 +270,10 @@ export default class FlowrouteClient {
   /**
    * @private
    */
-  handleNewRTCSession({ session }) {
+  handleNewRTCSession(rtcPayload) {
+    const { session } = rtcPayload;
     this.activeCall = session;
+
     const defaultCallEventsToHandle = [
       'peerconnection',
       'connecting',
@@ -314,6 +316,8 @@ export default class FlowrouteClient {
       this.activeCall = null;
       this.onCallAction({ type: 'failed', payload });
     });
+
+    this.onUserAgentAction({ type: 'newRTCSession', payload: rtcPayload });
   }
 
   /**

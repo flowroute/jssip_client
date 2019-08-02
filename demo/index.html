@@ -20,7 +20,7 @@
   <br/>
   <br/>
   <label for="dtmf-input">DTMF:</label>
-  <input id="dtmf-input" />
+  <input id="dtmf-input" placeholder="#" />
   <button type="button" onclick="sendDTMF()">Send</button>
   <br/>
   <br/>
@@ -32,7 +32,10 @@
   <button type="button" onclick="clearPHeaders()">Clear all</button>
   <br/>
   <br/>
-  <textarea id="debug-console" rows="20" cols="30" readonly title="Debugging tool. You can also open your browser console and freely use `flowrouteClient` instance globally available."></textarea>
+  <p>
+    Debugging
+  </p>
+  <textarea id="debug-console" rows="20" cols="40" readonly title="Debugging tool. You can also open your browser console and freely use `flowrouteClient` instance globally available."></textarea>
   <br/>
   <br/>
 
@@ -96,6 +99,7 @@
 
     function handleUserAgentAction(action) {
       writeDebugLine('User agent action: ' + action.type);
+      console.warn('Ignored user agent action:', action.type, action.payload);
     }
 
     function handleCallAction(action) {
@@ -111,7 +115,7 @@
           window.callBtn.onclick = doCall;
           break;
         default:
-          console.warn('Ignored call state:', action.type, action.payload);
+          console.warn('Ignored call action:', action.type, action.payload);
           break;
       }
     }
