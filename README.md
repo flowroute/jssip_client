@@ -10,7 +10,7 @@ of Flowroute applications on frontend.
 
 ### NPM
 
-Available on Node Package Manager: `npm install`
+Available on Node Package Manager: `npm install --save jssip_client`
 
 ### CDN
 
