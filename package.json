@@ -1,0 +1,45 @@
+{
+  "name": "jssip_client",
+  "version": "0.2.0",
+  "description": "Flowroute SIP over WebSocket and WebRTC JavaScript client",
+  "main": "src/FlowrouteClient.js",
+  "scripts": {
+    "start": "webpack-dev-server --watch --https --open  --content-base ./demo",
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flowroute/jssip_client.git"
+  },
+  "keywords": [
+    "telephony",
+    "sip",
+    "webrtc",
+    "websocket",
+    "flowroute"
+  ],
+  "author": "jchavanton",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/flowroute/jssip_client/issues"
+  },
+  "homepage": "https://github.com/flowroute/jssip_client#readme",
+  "dependencies": {
+    "jssip": "^3.3.6",
+    "lodash.first": "^3.0.0",
+    "webrtc-adapter": "^7.2.9"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "babel-loader": "^8.0.6",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-plugin-import": "^2.18.2",
+    "webpack": "^4.38.0",
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.7.2"
+  },
+  "targets": "> 0.25%, not dead"
+}

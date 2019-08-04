@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Flowroute WebRTC</title>
+  <meta name="description" content="Simple demonstration of Flowroute JsSIP Client">
+  <meta name="author" content="Mazuh">
+</head>
+<body>
+  <select id="number">
+    <option value="14503001085" selected>14503001085 (VoIP Patrol)</option>
+    <option value="12012673228">12012673228 (Julien Mobile)</option>
+    <option value="13125867146">13125867146 (FreeSwitch)</option>
+  </select>
+  <button id="call-btn" type="button" onclick="doCall()">Call</button>
+  <br/>
+  <label>mute microphone: </label><input id="mic-mute" type="checkbox" onclick="setMute(this.checked)"/>
+  <br/>
+  <label for="volume-range">Volume:<br/></label>
+  <input value="100" id="volume-range" type="range" min="0" max="100" onchange="changeVolume(this.value)" />
+  <br/>
+  <br/>
+  <label for="dtmf-input">DTMF:</label>
+  <input id="dtmf-input" placeholder="#" />
+  <button type="button" onclick="sendDTMF()">Send</button>
+  <br/>
+  <br/>
+  <label for="pheader-name">P-header name:</label>
+  <input id="pheader-name" placeholder="foo" /><br/>
+  <label for="pheader-value">P-header value:</label>
+  <input id="pheader-value" placeholder="bar" /><br/>
+  <button type="button" onclick="addPHeader()">Add</button>
+  <button type="button" onclick="clearPHeaders()">Clear all</button>
+  <br/>
+  <br/>
+  <p>
+    Debugging
+  </p>
+  <textarea id="debug-console" rows="20" cols="40" readonly title="Debugging tool. You can also open your browser console and freely use `flowrouteClient` instance globally available."></textarea>
+  <br/>
+  <br/>
+
+  <script src="./bundle.js"></script>
+  <script>
+    window.numberInput = document.getElementById('number');
+    window.callBtn = document.getElementById('call-btn');
+    window.debugConsole = document.getElementById('debug-console');
+    window.volumeRange = document.getElementById('volume-range');
+    window.dtmfInput = document.getElementById('dtmf-input');
+    window.pheaderName = document.getElementById('pheader-name');
+    window.pheaderValue = document.getElementById('pheader-value');
+    window.pheadersDisplayLine = document.getElementById('pheaders-display-line');
+
+    window.flowrouteClient = new FlowrouteClient({
+      debug: true,
+      onUserAgentAction: handleUserAgentAction,
+    });
+    window.flowrouteClient.start();
+    writeDebugLine('POP: ' + window.flowrouteClient.params.pointOfPresence);
+    writeDebugLine('Caller ID: ' + window.flowrouteClient.params.callerId);
+
+    function doCall() {
+      window.callBtn.innerText = 'Cancel';
+      window.callBtn.onclick = doHangup;
+      writeDebugLine('calling: ' + window.numberInput.value);
+      window.flowrouteClient.call({
+        to: window.numberInput.value,
+        onCallAction: handleCallAction,
+      });
+    }
+
+    function doHangup() {
+      window.flowrouteClient.hangup();
+    }
+
+    function writeDebugLine(message) {
+      window.debugConsole.value += message + '\n';
+      window.debugConsole.scrollTop = debugConsole.scrollHeight;
+    }
+
+    function changeVolume(value) {
+      window.flowrouteClient.setOutputVolume(value);
+    }
+
+    function setMute(value) {
+      window.flowrouteClient.setMicMuted(value);
+    }
+
+    function addPHeader() {
+      window.flowrouteClient.pushExtraPrivateCallHeader(pheaderName.value, pheaderValue.value);
+      pheaderName.value = '';
+      pheaderValue.value = '';
+      writeDebugLine('Headers:\n' + (window.flowrouteClient.getExtraCallHeaders().length ? window.flowrouteClient.getExtraCallHeaders() : ['Empty']).join(', '));
+    }
+
+    function clearPHeaders() {
+      while (window.flowrouteClient.getExtraCallHeaders().length) {
+        window.flowrouteClient.getExtraCallHeaders().pop();
+      }
+      writeDebugLine('Headers:\n' + (window.flowrouteClient.getExtraCallHeaders().length ? window.flowrouteClient.getExtraCallHeaders() : ['Empty']).join(', '));
+    }
+
+    function sendDTMF() {
+      window.flowrouteClient.getActiveCall().sendDTMF(dtmfInput.value);
+      dtmfInput.value = '';
+    }
+
+    function handleUserAgentAction(action) {
+      writeDebugLine('User agent action: ' + action.type);
+      console.warn('Ignored user agent action:', action.type, action.payload);
+    }
+
+    function handleCallAction(action) {
+      writeDebugLine('Call action: ' + action.type);
+      switch (action.type) {
+        case 'accepted':
+        case 'confirmed':
+          window.callBtn.innerText = 'Hangup';
+          window.callBtn.onclick = doHangup;
+          break;
+        case 'ended':
+        case 'failed':
+          window.callBtn.innerText = 'Call';
+          window.callBtn.onclick = doCall;
+          break;
+        default:
+          console.warn('Ignored call action:', action.type, action.payload);
+          break;
+      }
+    }
+</script>
+</body>
+</html>
