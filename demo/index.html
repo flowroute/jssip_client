@@ -14,6 +14,7 @@
   </select>
   <button id="call-btn" type="button" onclick="doCall()">Call</button>
   <br/>
+  <label>mute microphone: </label><input id="mic-mute" type="checkbox" onclick="setMute(this.checked)"/>
   <br/>
   <label for="volume-range">Volume:<br/></label>
   <input value="100" id="volume-range" type="range" min="0" max="100" onchange="changeVolume(this.value)" />
@@ -55,10 +56,13 @@
       onUserAgentAction: handleUserAgentAction,
     });
     window.flowrouteClient.start();
-    writeDebugLine('PO: ' + window.flowrouteClient.params.pointOfPresence);
+    writeDebugLine('POP: ' + window.flowrouteClient.params.pointOfPresence);
     writeDebugLine('Caller ID: ' + window.flowrouteClient.params.callerId);
 
     function doCall() {
+      window.callBtn.innerText = 'Cancel';
+      window.callBtn.onclick = doHangup;
+      writeDebugLine('calling: ' + window.numberInput.value);
       window.flowrouteClient.call({
         to: window.numberInput.value,
         onCallAction: handleCallAction,
@@ -73,9 +77,13 @@
       window.debugConsole.value += message + '\n';
       window.debugConsole.scrollTop = debugConsole.scrollHeight;
     }
-    
+
     function changeVolume(value) {
       window.flowrouteClient.setOutputVolume(value);
+    }
+
+    function setMute(value) {
+      window.flowrouteClient.setMicMuted(value);
     }
 
     function addPHeader() {

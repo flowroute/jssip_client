@@ -65,6 +65,7 @@ export default class FlowrouteClient {
       },
     ];
 
+    this.micMuted = false;
     this.qualityOfServiceEmitter = null;
     this.outputVolume = 1;
     this.isRegistered = false;
@@ -163,7 +164,7 @@ export default class FlowrouteClient {
       onCallAction = () => {},
     } = options;
 
-    const did = this.params.did || to;
+    const did = to || this.params.did;
     if (did) {
       this.setDID(did);
     } else {
@@ -233,6 +234,21 @@ export default class FlowrouteClient {
 
     if (this.audioPlayerElement) {
       this.audioPlayerElement.volume = this.outputVolume;
+    }
+  }
+
+  /**
+   * Set microphone mute.
+   *
+   * @param {boolean} user microphone is muted
+   */
+  setMicMuted(value) {
+    if (value) {
+       this.micMuted = true;
+       if (this.activeCall) this.activeCall.mute();
+    } else {
+       this.micMuted = false;
+       if (this.activeCall) this.activeCall.unmute();
     }
   }
 
@@ -365,6 +381,7 @@ export default class FlowrouteClient {
     const remoteStreams = session.connection.getRemoteStreams();
     this.audioPlayerElement.srcObject = first(remoteStreams);
     this.qualityOfServiceEmitter.start();
+    this.setMicMuted(this.micMuted);
   }
 
   /**
