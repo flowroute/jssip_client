@@ -6,6 +6,9 @@ It's actually is a facade for WebRTC, DOM and
 [JsSIP APIs](https://jssip.net/documentation/3.3.x/api/) to easy development
 of Flowroute applications on frontend.
 
+## online demo
+https://demo.webrtc.flowroute.com/fr.html?cache_invalidate=xxx
+
 ## Installation for usage
 
 ### NPM
