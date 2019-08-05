@@ -55,6 +55,7 @@
     window.flowrouteClient = new FlowrouteClient({
       debug: true,
       onUserAgentAction: handleUserAgentAction,
+      pointOfPresence: 'us-east-va',
     });
     window.flowrouteClient.start();
     writeDebugLine('POP: ' + window.flowrouteClient.params.pointOfPresence);
