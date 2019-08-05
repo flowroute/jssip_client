@@ -69,7 +69,7 @@ export default class FlowrouteClient {
     const sockets = [
       {
         socket: new WebSocketInterface(`wss://${urls[0]}:4443`),
-        weight: 10,
+        weight: 20,
       },
       {
         socket: new WebSocketInterface(`wss://${urls[1]}:4443`),
