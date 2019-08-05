@@ -33,6 +33,19 @@
   <button type="button" onclick="clearPHeaders()">Clear all</button>
   <br/>
   <br/>
+  <select id="pop-region">
+    <option value="us-west-or" selected>US-West-OR</option>
+    <option value="us-west-sjc">US-West-SJC</option>
+    <option value="us-east-va">US-East-VA</option>
+    <option value="us-east-nj">US-East-NJ</option>
+    <option value="eu-west-ldn">EU-West-LDN</option>
+    <option value="us-west-ams">EU-West-AMS</option>
+  </select>
+  <br/>
+  <br/>
+  <button type="button" onclick="reload()">Reload and Reregister</button>
+  <br/>
+  <br/>
   <p>
     Debugging
   </p>
@@ -43,6 +56,7 @@
   <script src="./bundle.js"></script>
   <script>
     window.numberInput = document.getElementById('number');
+    window.pointOfPresence = document.getElementById('pop-region');
     window.callBtn = document.getElementById('call-btn');
     window.debugConsole = document.getElementById('debug-console');
     window.volumeRange = document.getElementById('volume-range');
@@ -52,13 +66,20 @@
     window.pheadersDisplayLine = document.getElementById('pheaders-display-line');
     window.muteControl = document.getElementById('mic-mute');
 
-    window.flowrouteClient = new FlowrouteClient({
-      debug: true,
-      onUserAgentAction: handleUserAgentAction,
-    });
-    window.flowrouteClient.start();
-    writeDebugLine('POP: ' + window.flowrouteClient.params.pointOfPresence);
-    writeDebugLine('Caller ID: ' + window.flowrouteClient.params.callerId);
+    
+
+    loadClient()
+
+    function loadClient() {
+      window.flowrouteClient = new FlowrouteClient({
+        debug: true,
+        onUserAgentAction: handleUserAgentAction,
+        pointOfPresence: pointOfPresence.value,
+      });
+      window.flowrouteClient.start();
+      writeDebugLine('POP: ' + window.flowrouteClient.params.pointOfPresence);
+      writeDebugLine('Caller ID: ' + window.flowrouteClient.params.callerId);
+    }
 
     function doCall() {
       setMute(window.muteControl.checked);
@@ -100,6 +121,11 @@
         window.flowrouteClient.getExtraCallHeaders().pop();
       }
       writeDebugLine('Headers:\n' + (window.flowrouteClient.getExtraCallHeaders().length ? window.flowrouteClient.getExtraCallHeaders() : ['Empty']).join(', '));
+    }
+
+    function reload() {
+      window.flowrouteClient.stop();
+      loadClient();
     }
 
     function sendDTMF() {
