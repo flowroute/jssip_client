@@ -2,7 +2,7 @@
   "name": "jssip_client",
   "version": "0.2.2",
   "description": "Flowroute SIP over WebSocket and WebRTC JavaScript client",
-  "main": "cjs/index.js",
+  "main": "cjs/bundle.js",
   "module": "src/FlowrouteClient.js",
   "scripts": {
     "start": "webpack-dev-server --watch --https --open  --content-base ./demo",
