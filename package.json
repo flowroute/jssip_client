@@ -5,8 +5,8 @@
   "main": "cjs/bundle.js",
   "module": "src/FlowrouteClient.js",
   "scripts": {
-    "start": "webpack-dev-server --watch --https --open  --content-base ./demo",
-    "build:umd": "webpack",
+    "start": "MODE=development webpack-dev-server --watch --https --open  --content-base ./demo",
+    "build:umd": "MODE=production webpack",
     "build:cjs": "rollup --config",
     "prepare": "npm run build:cjs",
     "test": "echo \"Error: no test specified\" && exit 1"

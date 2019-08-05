@@ -21,13 +21,13 @@ const demoConfig = {
   },
 };
 
-const releaseConfig = merge(demoConfig, {
+const releaseConfig = merge(demoConfig, process.env.MODE === 'production' ? {
   mode: 'production',
   output: {
     path: path.resolve(__dirname, 'releases'),
     filename: `jssip-client-${process.env.VERSION}.js`,
   },
-});
+} : {});
 
 module.exports = [
   demoConfig,
