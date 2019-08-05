@@ -50,6 +50,7 @@
     window.pheaderName = document.getElementById('pheader-name');
     window.pheaderValue = document.getElementById('pheader-value');
     window.pheadersDisplayLine = document.getElementById('pheaders-display-line');
+    window.muteControl = document.getElementById('mic-mute');
 
     window.flowrouteClient = new FlowrouteClient({
       debug: true,
@@ -60,6 +61,7 @@
     writeDebugLine('Caller ID: ' + window.flowrouteClient.params.callerId);
 
     function doCall() {
+      setMute(window.muteControl.checked);
       window.callBtn.innerText = 'Cancel';
       window.callBtn.onclick = doHangup;
       writeDebugLine('calling: ' + window.numberInput.value);
