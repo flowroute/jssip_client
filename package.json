@@ -5,7 +5,8 @@
   "main": "cjs/bundle.js",
   "module": "src/FlowrouteClient.js",
   "scripts": {
-    "start": "MODE=development webpack-dev-server --watch --https --open  --content-base ./demo",
+    "start": "MODE=development webpack-dev-server --watch --https --open --content-base ./demo",
+    "start:pop": "MODE=development webpack-dev-server --watch --https --open --content-base ./demo --openPage fr_pop.html",
     "build:umd": "MODE=production webpack",
     "build:cjs": "rollup --config",
     "prepare": "npm run build:cjs",
