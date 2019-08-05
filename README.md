@@ -6,7 +6,7 @@ It's actually is a facade for WebRTC, DOM and
 [JsSIP APIs](https://jssip.net/documentation/3.3.x/api/) to easy development
 of Flowroute applications on frontend.
 
-## online demo
+## Online demo
 https://demo.webrtc.flowroute.com/fr.html?cache_invalidate=xxx
 
 ## Installation for usage
@@ -40,6 +40,21 @@ vanilla JavaScript.
 
 With the UI debugging console, you can see many of actions being dispatched by
 the user agent and its calls, everything that is available to you.
+
+
+### Creating releases
+
+For package maintainers:
+
+```
+./release.sh x.y.z
+```
+
+Where "x.y.z" is actually the version you want to release (like `./release.sh 0.0.1`).
+
+This script will change the version in `package.json`, build production artifacts
+into `releases/` directory and and commit them. After this, you will want to `git push`
+these changes and, for Node maintainers, also run `npm publish` command.
 
 ## Examples of features
 

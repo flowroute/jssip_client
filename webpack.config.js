@@ -1,6 +1,7 @@
 const path = require('path');
+const merge = require('webpack-merge');
 
-module.exports = {
+const demoConfig = {
   mode: 'development',
   entry: './src/FlowrouteClient.js',
   output: {
@@ -19,3 +20,16 @@ module.exports = {
     ],
   },
 };
+
+const releaseConfig = merge(demoConfig, {
+  mode: 'production',
+  output: {
+    path: path.resolve(__dirname, 'releases'),
+    filename: `jssip-client-${process.env.VERSION}.js`,
+  },
+});
+
+module.exports = [
+  demoConfig,
+  releaseConfig,
+];
