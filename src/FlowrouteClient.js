@@ -10,11 +10,11 @@ export const FR_POINTS_OF_PRESENCE_DOMAINS = {
   ],
   'us-west-or': [
     'wr-us-west-or-01.webrtc.flowroute.com',
-    'wr-us-east-va-01.webrtc.flowroute.com',
+    'wr-us-west-sjc-01.webrtc.flowroute.com',
   ],
   'us-east-va': [
     'wr-us-east-va-01.webrtc.flowroute.com',
-    'wr-us-west-or-01.webrtc.flowroute.com',
+    'wr-us-east-nj-01.webrtc.flowroute.com',
   ],
   'us-west-sjc': [
     'wr-us-west-sjc-01.webrtc.flowroute.com',
@@ -69,11 +69,11 @@ export default class FlowrouteClient {
     const sockets = [
       {
         socket: new WebSocketInterface(`wss://${urls[0]}:4443`),
-        weight: 10,
+        weight: 20,
       },
       {
         socket: new WebSocketInterface(`wss://${urls[1]}:4443`),
-        weight: 20,
+        weight: 10,
       },
     ];
 
@@ -217,11 +217,6 @@ export default class FlowrouteClient {
     return this.activeCall;
   }
 
-  checkActiveCall() {
-    if (this.activeCall) {
-      return true;
-    }
-  }
   /**
    * Hangup current active call and unassign it.
    */

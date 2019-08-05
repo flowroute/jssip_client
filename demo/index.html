@@ -33,7 +33,7 @@
   <button type="button" onclick="clearPHeaders()">Clear all</button>
   <br/>
   <br/>
-  <select onchange="switchPop()" id="pop-region">
+  <select id="pop-region">
     <option value="us-west-or" selected>US-West-OR</option>
     <option value="us-west-sjc">US-West-SJC</option>
     <option value="us-east-va">US-East-VA</option>
@@ -66,12 +66,15 @@
     window.pheadersDisplayLine = document.getElementById('pheaders-display-line');
     window.muteControl = document.getElementById('mic-mute');
 
+    
+
     loadClient()
 
     function loadClient() {
       window.flowrouteClient = new FlowrouteClient({
         debug: true,
         onUserAgentAction: handleUserAgentAction,
+        pointOfPresence: pointOfPresence.value,
       });
       window.flowrouteClient.start();
       writeDebugLine('POP: ' + window.flowrouteClient.params.pointOfPresence);
@@ -90,7 +93,6 @@
     }
 
     function doHangup() {
-      while (window.flowrouteClient.getActiveCall)
       window.flowrouteClient.hangup();
     }
 
@@ -121,16 +123,7 @@
       writeDebugLine('Headers:\n' + (window.flowrouteClient.getExtraCallHeaders().length ? window.flowrouteClient.getExtraCallHeaders() : ['Empty']).join(', '));
     }
 
-    function switchPop() {
-      window.pointOfPresence = document.getElementById('pop-region');
-    }
-
     function reload() {
-      while (window.flowrouteClient.checkActiveCall()) {
-        try {
-          doHangup();
-      } catch(e) {}
-      }
       window.flowrouteClient.stop();
       loadClient();
     }
