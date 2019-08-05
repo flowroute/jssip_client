@@ -1,6 +1,5 @@
 const path = require('path');
 const merge = require('webpack-merge');
-const config = require('./package.json');
 
 const demoConfig = {
   mode: 'development',
