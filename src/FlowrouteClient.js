@@ -73,7 +73,7 @@ export default class FlowrouteClient {
       },
       {
         socket: new WebSocketInterface(`wss://${urls[1]}:4443`),
-        weight: 10,
+        weight: 20,
       },
     ];
 
@@ -217,6 +217,11 @@ export default class FlowrouteClient {
     return this.activeCall;
   }
 
+  checkActiveCall() {
+    if (this.activeCall) {
+      return true;
+    }
+  }
   /**
    * Hangup current active call and unassign it.
    */
