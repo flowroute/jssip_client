@@ -5,8 +5,8 @@ import QualityOfService from './QualityOfService';
 
 export const FR_POINTS_OF_PRESENCE_DOMAINS = {
   'us-east-nj': [
-    'staging-ep-us-west-or-01.fl.gg',
-    'preprod-ep-us-east-nj-01.fl.gg',
+    'wr-us-east-nj-01.webrtc.flowroute.com',
+    'wr-us-east-va-01.webrtc.flowroute.com',
   ],
   'us-west-or': [
     'wr-us-west-or-01.webrtc.flowroute.com',
@@ -15,6 +15,18 @@ export const FR_POINTS_OF_PRESENCE_DOMAINS = {
   'us-east-va': [
     'wr-us-east-va-01.webrtc.flowroute.com',
     'wr-us-west-or-01.webrtc.flowroute.com',
+  ],
+  'us-west-sjc': [
+    'wr-us-west-sjc-01.webrtc.flowroute.com',
+    'wr-us-west-or-01.webrtc.flowroute.com',
+  ],
+  'eu-west-ldn': [
+    'wr-eu-west-ldn-01.webrtc.flowroute.com',
+    'wr-eu-west-ams-01.webrtc.flowroute.com',
+  ],
+  'eu-west-ams': [
+    'wr-eu-west-ams-01.webrtc.flowroute.com',
+    'wr-eu-west-ldn-01.webrtc.flowroute.com',
   ],
 };
 
