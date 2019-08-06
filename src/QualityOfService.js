@@ -12,7 +12,7 @@ export default class QualityOfService {
    * @param {sting} did
    * @param {number} interval
    */
-  constructor(sipUserAgent, realtimeSessionConnection, callId, did, interval) {
+  constructor(sipUserAgent, realtimeSessionConnection, callId, did, interval, debug) {
     this.sipUserAgent = sipUserAgent;
     this.realtimeSessionConnection = realtimeSessionConnection;
     this.callId = callId;
@@ -24,6 +24,7 @@ export default class QualityOfService {
     this.mediaTransmitterData = null;
     this.isActive = false;
     this.version = '0.0.1';
+    this.debug = debug;
   }
 
   /**
@@ -49,6 +50,7 @@ export default class QualityOfService {
    * @private
    */
   addStat(data) {
+    if (this.debug) console.log(data);
     const { id } = data;
     if (id) {
       if (id.includes('inbound_rtp_audio') || id.includes('RTCInboundRTPAudioStream')) {

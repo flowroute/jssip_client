@@ -376,6 +376,7 @@ export default class FlowrouteClient {
       request.call_id,
       this.params.did,
       this.params.intervalOfQualityReport,
+      this.params.debug,
     );
     this.onUserAgentAction({ type: 'newRTCSession', payload: rtcPayload });
   }
