@@ -23,6 +23,7 @@ export default class QualityOfService {
     this.mediaReceiverData = null;
     this.mediaTransmitterData = null;
     this.isActive = false;
+    this.version = '0.0.1';
   }
 
   /**
@@ -71,6 +72,7 @@ export default class QualityOfService {
     }
 
     const report = {
+      v: this.version,
       qos_data: {
         rx: this.realtimeProtocolReceiverData,
         tx: this.realtimeProtocolTransmitterData,
