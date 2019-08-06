@@ -81,12 +81,12 @@ export default class QualityOfService {
       },
     };
 
-    if (this.mediaTransmitter) {
-      report.qos_data.tx_media = this.mediaTransmitter;
+    if (this.mediaTransmitterData) {
+      report.qos_data.tx_media = this.mediaTransmitterData;
     }
 
-    if (this.mediaReceiver) {
-      report.qos_data.rx_media = this.mediaReceiver;
+    if (this.mediaReceiverData) {
+      report.qos_data.rx_media = this.mediaReceiverData;
     }
 
     const to = `${this.did}@sip.flowroute.com`;
