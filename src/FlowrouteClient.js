@@ -256,11 +256,11 @@ export default class FlowrouteClient {
    */
   setMicMuted(value) {
     if (value) {
-       this.micMuted = true;
-       if (this.activeCall) this.activeCall.mute();
+      this.micMuted = true;
+      if (this.activeCall) this.activeCall.mute();
     } else {
-       this.micMuted = false;
-       if (this.activeCall) this.activeCall.unmute();
+      this.micMuted = false;
+      if (this.activeCall) this.activeCall.unmute();
     }
   }
 
@@ -294,6 +294,32 @@ export default class FlowrouteClient {
    */
   getExtraCallHeaders() {
     return this.params.extraHeaders;
+  }
+
+  /**
+   * On the current active call, send DTMFs over RTP.
+   * It'll trigger a custom "sentRtpDTMF" call event type.
+   *
+   * If you want to send DTMFs as SIP INFO message, then
+   * use `this.getActiveCall().sendDTMF(tone)` instead, so it'll
+   * trigger regular JsSIP event types.
+   *
+   * @param {string|number} tone as a valid DTMF digit
+   * @param {number?} duration in ms, defaults to 100ms
+   */
+  sendRtpDTMF(tone, duration = 100) {
+    const { activeCall } = this;
+    if (!activeCall) {
+      throw new Error('No call instance available for sending DTMFs.');
+    }
+
+    const realtimeAudioSender = first(activeCall.connection.getSenders());
+    if (!realtimeAudioSender) {
+      throw new Error('Failed to get an instance of RTP track sender for this call.');
+    }
+
+    realtimeAudioSender.dtmf.insertDTMF(tone, duration);
+    this.onCallAction({ type: 'sentRtpDTMF', payload: { tone, duration } });
   }
 
   /**
