@@ -104,7 +104,7 @@
     }
 
     function sendDTMF() {
-      window.flowrouteClient.getActiveCall().sendDTMF(dtmfInput.value);
+      window.flowrouteClient.sendRtpDTMF(dtmfInput.value);
       dtmfInput.value = '';
     }
 
