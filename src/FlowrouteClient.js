@@ -188,6 +188,7 @@ export default class FlowrouteClient {
     }
 
     this.onCallAction = onCallAction;
+    this.params.extraHeaders.push('P-BUA:' + navigator.userAgent);
     this.sipUserAgent.call(`sip:${did}@sip.flowroute.com`, {
       mediaConstraints: { audio: options.audioConstraints || true, video: false },
       extraHeaders: this.params.extraHeaders,
@@ -393,7 +394,7 @@ export default class FlowrouteClient {
     session.on('failed', (payload) => {
       this.disconnectAudio();
       this.activeCall = null;
-      this.onCallAction({ type: 'failed', payload });
+      this.onCallAction({ type: 'failed callid['+ payload.message.call_id +']', payload });
     });
 
     this.qualityOfServiceEmitter = new QualityOfService(
