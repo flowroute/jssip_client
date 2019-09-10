@@ -114,7 +114,11 @@
     }
 
     function handleCallAction(action) {
-      writeDebugLine('Call action: ' + action.type);
+      if (typeof(action.payload.message) != "undefined") {
+         writeDebugLine('Call action: ' + action.type + '[' + action.payload.message.call_id +']');
+      } else {
+         writeDebugLine('Call action: ' + action.type);
+      }
       switch (action.type) {
         case 'accepted':
         case 'confirmed':

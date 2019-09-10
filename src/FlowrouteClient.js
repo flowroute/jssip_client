@@ -394,7 +394,7 @@ export default class FlowrouteClient {
     session.on('failed', (payload) => {
       this.disconnectAudio();
       this.activeCall = null;
-      this.onCallAction({ type: 'failed callid['+ payload.message.call_id +']', payload });
+      this.onCallAction({ type: 'failed', payload });
     });
 
     this.qualityOfServiceEmitter = new QualityOfService(
