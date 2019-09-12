@@ -44,6 +44,7 @@
   <script>
     window.numberInput = document.getElementById('number');
     window.callBtn = document.getElementById('call-btn');
+    window.callBtn.disabled = true;
     window.debugConsole = document.getElementById('debug-console');
     window.volumeRange = document.getElementById('volume-range');
     window.dtmfInput = document.getElementById('dtmf-input');
@@ -110,6 +111,11 @@
 
     function handleUserAgentAction(action) {
       writeDebugLine('User agent action: ' + action.type);
+      switch (action.type) {
+        case 'registered':
+          window.callBtn.disabled = false;
+          break;
+      }
       console.warn('Ignored user agent action:', action.type, action.payload);
     }
 
@@ -119,7 +125,7 @@
       } else if (action.payload.message != null) {
          writeDebugLine('Call action: ' + action.type + ' [' + action.payload.message.call_id +']');
       } else {
-         writeDebugLine('Call action: ! ' + action.type);
+         writeDebugLine('Call action: ' + action.type);
       }
       switch (action.type) {
         case 'accepted':
