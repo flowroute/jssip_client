@@ -79,6 +79,7 @@ export default class FlowrouteClient {
 
     this.micMuted = false;
     this.qualityOfServiceEmitter = null;
+    this.session = null;
     this.outputVolume = 1;
     this.isRegistered = false;
     this.onCallAction = () => {};
@@ -191,6 +192,7 @@ export default class FlowrouteClient {
     this.params.extraHeaders.push('P-BUA:' + navigator.userAgent);
     this.sipUserAgent.call(`sip:${did}@sip.flowroute.com`, {
       mediaConstraints: { audio: options.audioConstraints || true, video: false },
+      //mediaStream: 
       extraHeaders: this.params.extraHeaders,
       RTCConstraints: {
         optional: [
@@ -216,6 +218,10 @@ export default class FlowrouteClient {
    */
   getActiveCall() {
     return this.activeCall;
+  }
+
+  setAudioElement(stream) {
+    audio.srcObject = stream;
   }
 
   /**
@@ -323,6 +329,10 @@ export default class FlowrouteClient {
     this.onCallAction({ type: 'sentRtpDTMF', payload: { tone, duration } });
   }
 
+  getAudioInput(){
+    return this.audioPlayerElement;
+  }
+
   /**
    * @private
    */
@@ -406,6 +416,27 @@ export default class FlowrouteClient {
       this.params.debug,
     );
     this.onUserAgentAction({ type: 'newRTCSession', payload: rtcPayload });
+  }
+
+
+  setAudioInput(new_stream) {
+     if (!new_stream) return 0;
+     if (!this.activeCall) return 0;
+     var streams = this.activeCall.connection.getRemoteStreams();
+     var new_audio_track = new_stream.getAudioTracks();
+     if (!new_audio_track) return 0;
+     var x = 0;
+     for (var stream of streams) {
+        x++;
+        stream.getTracks().forEach(track => {
+            track.stop();
+            stream.removeTrack(track);
+            alert("remove audio track["+x+"] "+track.label);
+        });
+        stream.addTrack(new_audio_track[0]);
+        alert("adding audio track["+x+"] "+ new_audio_track[0].label);
+     }
+    return 1;
   }
 
   /**
