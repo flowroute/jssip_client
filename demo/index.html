@@ -25,6 +25,10 @@
   <button type="button" onclick="sendDTMF()">Send</button>
   <br/>
   <br/>
+  <button type="button" onclick="hold()">Hold</button>
+  <button type="button" onclick="unhold()">Unhold</button>
+  <br/>
+  <br/>
   <label for="pheader-name">P-header name:</label>
   <input id="pheader-name" placeholder="foo" /><br/>
   <label for="pheader-value">P-header value:</label>
@@ -87,6 +91,14 @@
 
     function setMute(value) {
       window.flowrouteClient.setMicMuted(value);
+    }
+
+    function hold() {
+      window.flowrouteClient.setHold(true);
+    }
+
+    function unhold() {
+      window.flowrouteClient.setHold(false);
     }
 
     function addPHeader() {
