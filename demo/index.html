@@ -25,6 +25,11 @@
   <button type="button" onclick="sendDTMF()">Send</button>
   <br/>
   <br/>
+  <label for="transfer-input">Blind transfer:</label>
+  <input id="transfer-input" placeholder="Extension" />
+  <button type="button" onclick="blindTransfer()">Transfer</button>
+  <br/>
+  <br/>
   <button type="button" onclick="hold()">Hold</button>
   <button type="button" onclick="unhold()">Unhold</button>
   <br/>
@@ -51,6 +56,7 @@
     window.debugConsole = document.getElementById('debug-console');
     window.volumeRange = document.getElementById('volume-range');
     window.dtmfInput = document.getElementById('dtmf-input');
+    window.transferInput = document.getElementById('transfer-input');
     window.pheaderName = document.getElementById('pheader-name');
     window.pheaderValue = document.getElementById('pheader-value');
     window.pheadersDisplayLine = document.getElementById('pheaders-display-line');
@@ -99,6 +105,11 @@
 
     function unhold() {
       window.flowrouteClient.setHold(false);
+    }
+
+    function blindTransfer() {
+      writeDebugLine('Trying to transfer to ' + window.transferInput.value);
+      window.flowrouteClient.transfer(window.transferInput.value);
     }
 
     function addPHeader() {

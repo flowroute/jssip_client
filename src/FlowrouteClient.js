@@ -304,6 +304,19 @@ export default class FlowrouteClient {
   }
 
   /**
+   * Make a blind transfer to another extension.
+   *
+   * @param {string} destination extension as target
+   */
+  transfer(destination) {
+    if (!this.activeCall) {
+      return;
+    }
+
+    this.activeCall.refer(destination);
+  }
+
+  /**
    * Add a P-header to client calls.
    *
    * @param {string} name
