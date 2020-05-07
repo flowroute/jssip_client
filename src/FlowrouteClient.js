@@ -78,6 +78,7 @@ export default class FlowrouteClient {
     ];
 
     this.micMuted = false;
+    this.isHolding = false;
     this.qualityOfServiceEmitter = null;
     this.outputVolume = 1;
     this.isRegistered = false;
@@ -253,7 +254,7 @@ export default class FlowrouteClient {
   /**
    * Set microphone mute.
    *
-   * @param {boolean} user microphone is muted
+   * @param {boolean} value if microphone must be muted
    */
   setMicMuted(value) {
     if (value) {
@@ -272,6 +273,47 @@ export default class FlowrouteClient {
    */
   getOutputVolume() {
     return this.outputVolume * 100;
+  }
+
+  /**
+   * Puts the other side of the call on hold.
+   *
+   * If hold fails, the call might end.
+   *
+   * @param {boolean} value boolean for if peer must hold the session.
+   */
+  setHold(value) {
+    if (!this.activeCall) {
+      return;
+    }
+
+    this.isHolding = value;
+    if (value) {
+      this.activeCall.hold();
+    } else {
+      this.activeCall.unhold();
+    }
+  }
+
+  /**
+   * @return {boolean} if this peer is holding the other side
+   * (but unaware if other side had put this peer on hold).
+   */
+  isHolding() {
+    return this.isHolding;
+  }
+
+  /**
+   * Make a blind transfer to another extension.
+   *
+   * @param {string} destination extension as target
+   */
+  transfer(destination) {
+    if (!this.activeCall) {
+      return;
+    }
+
+    this.activeCall.refer(destination);
   }
 
   /**
