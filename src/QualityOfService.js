@@ -10,12 +10,14 @@ export default class QualityOfService {
    * @param {RTCPeerConnection} realtimeSessionConnection
    * @param {string} callId
    * @param {sting} did
+   * @param {sting} sip
    * @param {number} interval
    */
-  constructor(sipUserAgent, realtimeSessionConnection, callId, did, interval, debug) {
+  constructor(sipUserAgent, realtimeSessionConnection, callId, sip, did, interval, debug) {
     this.sipUserAgent = sipUserAgent;
     this.realtimeSessionConnection = realtimeSessionConnection;
     this.callId = callId;
+    this.sip = sip;
     this.did = did;
     this.interval = (interval && interval > 1000 && interval < 60000) ? interval : 5000;
     this.realtimeProtocolReceiverData = null;
@@ -89,7 +91,7 @@ export default class QualityOfService {
       report.qos_data.rx_media = this.mediaReceiverData;
     }
 
-    const to = `${this.did}@sip.flowroute.com`;
+    const to = `${this.did}@${this.sip}`;
     this.sipUserAgent.sendMessage(to, JSON.stringify(report, null, 2), {
       extraHeaders: [
         `P-QoS-Call-ID:${this.callId}`,

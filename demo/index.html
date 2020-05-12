@@ -25,6 +25,15 @@
   <button type="button" onclick="sendDTMF()">Send</button>
   <br/>
   <br/>
+  <label for="transfer-input">Blind transfer:</label>
+  <input id="transfer-input" placeholder="Extension" />
+  <button type="button" onclick="blindTransfer()">Transfer</button>
+  <br/>
+  <br/>
+  <button type="button" onclick="hold()">Hold</button>
+  <button type="button" onclick="unhold()">Unhold</button>
+  <br/>
+  <br/>
   <label for="pheader-name">P-header name:</label>
   <input id="pheader-name" placeholder="foo" /><br/>
   <label for="pheader-value">P-header value:</label>
@@ -47,6 +56,7 @@
     window.debugConsole = document.getElementById('debug-console');
     window.volumeRange = document.getElementById('volume-range');
     window.dtmfInput = document.getElementById('dtmf-input');
+    window.transferInput = document.getElementById('transfer-input');
     window.pheaderName = document.getElementById('pheader-name');
     window.pheaderValue = document.getElementById('pheader-value');
     window.pheadersDisplayLine = document.getElementById('pheaders-display-line');
@@ -55,7 +65,14 @@
     window.flowrouteClient = new FlowrouteClient({
       debug: true,
       onUserAgentAction: handleUserAgentAction,
-      pointOfPresence: 'us-east-va',
+      pointOfPresence: [
+      'wr-us-east-va-01.webrtc.flowroute.com:4443',
+      'wr-us-east-nj-01.webrtc.flowroute.com:4443',
+    ],
+      callerId: 'anonymous',
+      password: 'nopassword',
+      uri:`sip:anonymous@wss.flowroute.com`,
+      sip:'sip.flowroute.com'
     });
     window.flowrouteClient.start();
     writeDebugLine('POP: ' + window.flowrouteClient.params.pointOfPresence);
@@ -89,6 +106,19 @@
       window.flowrouteClient.setMicMuted(value);
     }
 
+    function hold() {
+      window.flowrouteClient.setHold(true);
+    }
+
+    function unhold() {
+      window.flowrouteClient.setHold(false);
+    }
+
+    function blindTransfer() {
+      writeDebugLine('Trying to transfer to ' + window.transferInput.value);
+      window.flowrouteClient.transfer(window.transferInput.value);
+    }
+
     function addPHeader() {
       window.flowrouteClient.pushExtraPrivateCallHeader(pheaderName.value, pheaderValue.value);
       pheaderName.value = '';
@@ -114,7 +144,7 @@
     }
 
     function handleCallAction(action) {
-      if (typeof(action.payload.message) != "undefined") {
+      if (typeof(action.payload.message) != "undefined" && action.payload.message != null) {
          writeDebugLine('Call action: ' + action.type + '[' + action.payload.message.call_id+']');
       } else {
          writeDebugLine('Call action: ' + action.type);
@@ -126,6 +156,9 @@
           window.callBtn.onclick = doHangup;
           break;
         case 'ended':
+          window.callBtn.innerText = 'Call';
+          window.callBtn.onclick = doCall;
+          break;
         case 'failed':
           window.callBtn.innerText = 'Call';
           window.callBtn.onclick = doCall;

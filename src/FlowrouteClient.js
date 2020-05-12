@@ -3,32 +3,6 @@ import first from 'lodash.first';
 import { UA, WebSocketInterface, debug } from 'jssip/lib/JsSIP';
 import QualityOfService from './QualityOfService';
 
-export const FR_POINTS_OF_PRESENCE_DOMAINS = {
-  'us-east-nj': [
-    'wr-us-east-nj-01.webrtc.flowroute.com',
-    'wr-us-east-va-01.webrtc.flowroute.com',
-  ],
-  'us-west-or': [
-    'wr-us-west-or-01.webrtc.flowroute.com',
-    'wr-us-west-sjc-01.webrtc.flowroute.com',
-  ],
-  'us-east-va': [
-    'wr-us-east-va-01.webrtc.flowroute.com',
-    'wr-us-east-nj-01.webrtc.flowroute.com',
-  ],
-  'us-west-sjc': [
-    'wr-us-west-sjc-01.webrtc.flowroute.com',
-    'wr-us-west-or-01.webrtc.flowroute.com',
-  ],
-  'eu-west-ldn': [
-    'wr-eu-west-ldn-01.webrtc.flowroute.com',
-    'wr-eu-west-ams-01.webrtc.flowroute.com',
-  ],
-  'eu-west-ams': [
-    'wr-eu-west-ams-01.webrtc.flowroute.com',
-    'wr-eu-west-ldn-01.webrtc.flowroute.com',
-  ],
-};
 
 /**
  * Flowroute SIP over WebSocket and WebRTC JavaScript client.
@@ -44,7 +18,7 @@ export default class FlowrouteClient {
    * Init a JsSIP user agent.
    *
    * @param {object}   params
-   * @param {string}   params.pointOfPresence one of `FR_POINTS_OF_PRESENCE_DOMAINS` keys
+   * @param {string}   params.pointOfPresence one of `FR_POINTS_OF_PRESENCE_DOMAINS` array
    * @param {string}   params.callerId caller ID for building user agent URI
    * @param {string}   params.displayName to be used on calls params
    * @param {string}   params.password to be used on calls params
@@ -54,8 +28,9 @@ export default class FlowrouteClient {
    */
   constructor(params = {}) {
     this.params = {
-      pointOfPresence: 'us-west-or',
+      pointOfPresence: [],
       callerId: 'anonymous',
+      sip:'sip.flowroute.com',
       displayName: 'Flowroute Client Demo',
       password: 'nopassword',
       extraHeaders: [],
@@ -65,19 +40,18 @@ export default class FlowrouteClient {
       ...params,
     };
 
-    const urls = FR_POINTS_OF_PRESENCE_DOMAINS[this.params.pointOfPresence];
-    const sockets = [
-      {
-        socket: new WebSocketInterface(`wss://${urls[0]}:4443`),
-        weight: 20,
-      },
-      {
-        socket: new WebSocketInterface(`wss://${urls[1]}:4443`),
-        weight: 10,
-      },
-    ];
+    let weight =0
+    const sockets=[]
+    this.params.pointOfPresence.map((url)=>{
+       sockets.push(   {
+         socket: new WebSocketInterface(`wss://${url}`),
+         weight: weight+= 10,
+       })
+
+    })
 
     this.micMuted = false;
+    this.isHolding = false;
     this.qualityOfServiceEmitter = null;
     this.outputVolume = 1;
     this.isRegistered = false;
@@ -85,7 +59,7 @@ export default class FlowrouteClient {
     this.onUserAgentAction = this.params.onUserAgentAction;
     this.sipUserAgent = new UA({
       sockets,
-      uri: `sip:${this.params.callerId}@wss.flowroute.com`,
+      uri: `sip:${this.params.callerId}@${this.params.sip}`,
       password: this.params.password,
       display_name: this.params.displayName,
     });
@@ -143,8 +117,8 @@ export default class FlowrouteClient {
   setDID(did) {
     if (typeof did !== 'string') {
       throw new Error('Expected DID to be a string');
-    } else if (did.length !== 11) {
-      throw new Error('Currently only DIDs with 11 length are supported');
+    } else if (did.length <= 2) {
+      throw new Error('Currently only DIDs with more than 2 length are supported');
     }
 
     this.params = { ...this.params, did };
@@ -189,7 +163,7 @@ export default class FlowrouteClient {
 
     this.onCallAction = onCallAction;
     this.params.extraHeaders.push('P-BUA:' + navigator.userAgent);
-    this.sipUserAgent.call(`sip:${did}@sip.flowroute.com`, {
+    this.sipUserAgent.call(`sip:${did}@${this.sip}`, {
       mediaConstraints: { audio: options.audioConstraints || true, video: false },
       extraHeaders: this.params.extraHeaders,
       RTCConstraints: {
@@ -253,7 +227,7 @@ export default class FlowrouteClient {
   /**
    * Set microphone mute.
    *
-   * @param {boolean} user microphone is muted
+   * @param {boolean} value if microphone must be muted
    */
   setMicMuted(value) {
     if (value) {
@@ -272,6 +246,47 @@ export default class FlowrouteClient {
    */
   getOutputVolume() {
     return this.outputVolume * 100;
+  }
+
+  /**
+   * Puts the other side of the call on hold.
+   *
+   * If hold fails, the call might end.
+   *
+   * @param {boolean} value boolean for if peer must hold the session.
+   */
+  setHold(value) {
+    if (!this.activeCall) {
+      return;
+    }
+
+    this.isHolding = value;
+    if (value) {
+      this.activeCall.hold();
+    } else {
+      this.activeCall.unhold();
+    }
+  }
+
+  /**
+   * @return {boolean} if this peer is holding the other side
+   * (but unaware if other side had put this peer on hold).
+   */
+  isHolding() {
+    return this.isHolding;
+  }
+
+  /**
+   * Make a blind transfer to another extension.
+   *
+   * @param {string} destination extension as target
+   */
+  transfer(destination) {
+    if (!this.activeCall) {
+      return;
+    }
+
+    this.activeCall.refer(destination);
   }
 
   /**
@@ -401,7 +416,8 @@ export default class FlowrouteClient {
       this.sipUserAgent,
       session.connection,
       request.call_id,
-      this.params.did,
+      this.sip,
+      this.did,
       this.params.intervalOfQualityReport,
       this.params.debug,
     );
