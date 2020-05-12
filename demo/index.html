@@ -65,7 +65,14 @@
     window.flowrouteClient = new FlowrouteClient({
       debug: true,
       onUserAgentAction: handleUserAgentAction,
-      pointOfPresence: 'us-east-va',
+      pointOfPresence: [
+      'wr-us-east-va-01.webrtc.flowroute.com:4443',
+      'wr-us-east-nj-01.webrtc.flowroute.com:4443',
+    ],
+      callerId: 'anonymous',
+      password: 'nopassword',
+      uri:`sip:anonymous@wss.flowroute.com`,
+      sip:'sip.flowroute.com'
     });
     window.flowrouteClient.start();
     writeDebugLine('POP: ' + window.flowrouteClient.params.pointOfPresence);
@@ -137,7 +144,7 @@
     }
 
     function handleCallAction(action) {
-      if (typeof(action.payload.message) != "undefined") {
+      if (typeof(action.payload.message) != "undefined" && action.payload.message != null) {
          writeDebugLine('Call action: ' + action.type + '[' + action.payload.message.call_id+']');
       } else {
          writeDebugLine('Call action: ' + action.type);
@@ -149,6 +156,9 @@
           window.callBtn.onclick = doHangup;
           break;
         case 'ended':
+          window.callBtn.innerText = 'Call';
+          window.callBtn.onclick = doCall;
+          break;
         case 'failed':
           window.callBtn.innerText = 'Call';
           window.callBtn.onclick = doCall;
